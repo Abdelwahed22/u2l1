@@ -1,0 +1,1509 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>معمل التشفير والمصادقة</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap">
+<style>
+/* Layout: sticky tab bar on top; each concept is one screen = lesson header + live simulation panel + short takeaway panel */
+:root{
+  --bg:#EEF3F5; --surface:#FFFFFF; --surface2:#E3EBEE; --fg:#10242C; --muted:#4D646E; --line:#C9D7DC;
+  --accent:#0B7A85; --accent-ink:#FFFFFF; --accent-soft:#D3EEF0;
+  --good:#17814F; --good-soft:#D8F0E3; --bad:#B8312A; --bad-soft:#F8DDDA; --bad-ink:#FFFFFF;
+  --warn:#8F5400; --warn-soft:#FBEBCB;
+  --cipher:#5B3FA8; --cipher-soft:#E7E0F7;
+  --f-display:'Readex Pro','IBM Plex Sans Arabic',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1A20; --surface:#132830; --surface2:#1A343E; --fg:#E3EFF2; --muted:#9DB6BE; --line:#27434D;
+    --accent:#3FC1CC; --accent-ink:#05262B; --accent-soft:#12383E;
+    --good:#4CC98A; --good-soft:#123626; --bad:#FF8A80; --bad-soft:#3E1B19; --bad-ink:#2A0A08;
+    --warn:#F2B04C; --warn-soft:#3B2C0E;
+    --cipher:#B9A4F5; --cipher-soft:#2A2250;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1A20; --surface:#132830; --surface2:#1A343E; --fg:#E3EFF2; --muted:#9DB6BE; --line:#27434D;
+  --accent:#3FC1CC; --accent-ink:#05262B; --accent-soft:#12383E;
+  --good:#4CC98A; --good-soft:#123626; --bad:#FF8A80; --bad-soft:#3E1B19; --bad-ink:#2A0A08;
+  --warn:#F2B04C; --warn-soft:#3B2C0E;
+  --cipher:#B9A4F5; --cipher-soft:#2A2250;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{font-size:100%}
+html.big{font-size:118%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:1rem;line-height:1.75}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4,p{margin:0}
+.i{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.22em;flex:none}
+
+/* detailed lesson explanations */
+.top-actions{gap:8px}
+.lesson-detail{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden}
+.lesson-detail>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;color:var(--accent);font-family:var(--f-display);font-weight:700;cursor:pointer}
+.lesson-detail>summary::-webkit-details-marker{display:none}
+.lesson-detail>summary::after{content:"＋";font-family:var(--f-mono);font-size:1.1rem}
+.lesson-detail[open]>summary::after{content:"−"}
+.lesson-detail .detail-body{padding:0 18px 18px;display:grid;gap:14px}
+.lesson-detail h3{font-family:var(--f-display);font-size:1rem;color:var(--fg);margin-bottom:4px}
+.lesson-detail p{color:var(--muted)}
+.lesson-detail ul{margin:6px 0 0;padding-inline-start:1.25rem;display:grid;gap:6px}
+.lesson-detail li::marker{color:var(--accent)}
+.lesson-detail .detail-callout{padding:10px 12px;border-radius:10px;background:var(--accent-soft);color:var(--fg)}
+.lesson-detail .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lesson-detail .detail-card{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+@media(max-width:600px){.lesson-detail .detail-grid{grid-template-columns:minmax(0,1fr)}.top-actions{gap:6px}.top-actions .btn{padding-inline:9px}}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px 2px;max-width:1160px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;color:var(--fg);text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:1.1rem}
+.brand .logo{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink)}
+.tabs{display:flex;gap:2px;overflow-x:auto;max-width:1160px;margin-inline:auto;scrollbar-width:thin}
+.tabs a{color:var(--muted);text-decoration:none;padding:8px 13px;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tabs a:hover{color:var(--fg)}
+.tabs a[aria-current="page"]{color:var(--accent);border-color:var(--accent);font-weight:700}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+main{max-width:1160px;margin-inline:auto;padding-block:26px 64px}
+.view[hidden]{display:none}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.05em;color:var(--accent);direction:ltr;text-align:right;font-weight:500}
+.vhead{display:grid;gap:6px;margin-bottom:20px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.7rem,4.4vw,2.6rem);line-height:1.25;text-wrap:balance}
+.lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+.grid2{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.note h3{font-family:var(--f-display);font-size:1.05rem}
+.note ul{margin:0;padding-inline-start:1.15rem;display:grid;gap:8px}
+.note li::marker{color:var(--accent)}
+.try{padding:9px 13px;border-radius:10px;background:var(--accent-soft);font-size:.95rem}
+.try b{color:var(--accent)}
+.lbl{display:block;font-size:.85rem;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* controls */
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface2);color:var(--fg);padding:8px 16px;border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:4px 12px;font-size:.88rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.inp{font:inherit;width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+textarea.inp{resize:vertical}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;padding:7px 22px;background:var(--surface);color:var(--muted);border:0;cursor:pointer;font-family:var(--f-mono)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button[data-v="http"][aria-pressed="true"]{background:var(--bad);color:var(--bad-ink)}
+.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+.check input{width:1.1rem;height:1.1rem;accent-color:var(--accent)}
+
+.tag{display:inline-flex;gap:6px;align-items:center;padding:1px 10px;border-radius:999px;font-size:.84rem;font-weight:600;background:var(--surface2);color:var(--fg)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.info{background:var(--accent-soft);color:var(--accent)}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:2px 10px;border-radius:8px;background:var(--surface2);font-size:.88rem}
+.chip em{font-style:normal;color:var(--accent);font-weight:600}
+.mono{font-family:var(--f-mono);direction:ltr;text-align:left;unicode-bidi:isolate;overflow-wrap:anywhere;font-size:.88rem;line-height:1.6}
+.out{border:1px dashed var(--line);border-radius:10px;padding:9px 12px;min-height:2.9rem;background:var(--bg);overflow-wrap:anywhere}
+.out.cipher{background:var(--cipher-soft);color:var(--cipher);border-color:transparent}
+.out.good{background:var(--good-soft);color:var(--good);border-color:transparent}
+.out.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+mark{background:var(--bad);color:var(--bad-ink);padding:0 4px;border-radius:4px;font-weight:700}
+.keybadge{display:inline-flex;align-items:center;gap:6px;padding:1px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-weight:700;font-family:var(--f-mono)}
+
+/* browser mock */
+.browser{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.bbar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.url{flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:var(--bg);font-family:var(--f-mono);font-size:.85rem;direction:ltr;white-space:nowrap;overflow:hidden}
+.url span{overflow:hidden;text-overflow:ellipsis}
+.url.safe .i{color:var(--good)}
+.url.unsafe .i{color:var(--bad)}
+.bpage{padding:16px;display:grid;gap:12px}
+
+/* stage with flying packets */
+.stage{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:18px 10px 10px;border-radius:12px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.wire{position:absolute;left:12%;right:12%;top:46px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
+.node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;width:clamp(78px,24%,130px);font-size:.85rem;line-height:1.4}
+.node .ico{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line);color:var(--fg);transition:box-shadow .2s,border-color .2s}
+.node .ico .i{width:28px;height:28px}
+.node .ico.on{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.node .ico.watch{border-color:var(--bad);color:var(--bad);box-shadow:0 0 0 4px var(--bad-soft)}
+.node .slot{min-height:1.7rem;display:flex;flex-direction:column;gap:3px;align-items:center}
+.packet{position:absolute;z-index:5;max-width:9.5rem;padding:3px 10px;border-radius:8px;font-family:var(--f-mono);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;pointer-events:none}
+.packet.plain{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+.packet.cipher{background:var(--cipher-soft);color:var(--cipher);border:1px solid var(--cipher)}
+.packet.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
+.packet.info{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:center;margin-bottom:26px}
+@media (max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero .vhead{margin:0}
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px}
+.demo-line{padding:12px;border-radius:10px;background:var(--bad-soft);color:var(--bad);transition:opacity .25s}
+.demo-line.cipher{background:var(--cipher-soft);color:var(--cipher)}
+.demo-cap{display:flex;gap:8px;align-items:center;font-weight:600}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:22px}
+@media (min-width:640px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+a.card{display:grid;gap:4px;align-content:start;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+a.card .ci{color:var(--accent);font-size:1.5rem}
+a.card b{font-family:var(--f-display);font-size:1.05rem}
+a.card span.d{color:var(--muted);font-size:.92rem;line-height:1.55}
+.goals ul{margin:0;padding-inline-start:1.15rem;display:grid;gap:6px}
+
+/* symmetric */
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"s r" "c c";gap:14px}
+.sgrid .ps{grid-area:s}.sgrid .pr{grid-area:r}.sgrid .pc{grid-area:c}
+@media (max-width:640px){.sgrid{grid-template-columns:minmax(0,1fr);grid-template-areas:"s" "c" "r"}}
+.person{display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg);align-content:start}
+.person h3{font-family:var(--f-display);font-size:1rem;display:flex;gap:8px;align-items:center}
+.keyrow{display:flex;justify-content:space-between;align-items:center}
+.strip{overflow-x:auto;padding-block:4px}
+.srow{display:flex;gap:4px;align-items:center;margin-block:4px;min-width:max-content}
+.srow i{font-style:normal;width:30px;height:32px;display:grid;place-items:center;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-weight:600}
+.srow i.sh{background:var(--cipher-soft);color:var(--cipher);border-color:transparent}
+.sl{width:3.8rem;font-size:.78rem;color:var(--muted)}
+
+/* public key */
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.steps>li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.num{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:var(--f-mono)}
+.keytile{display:grid;gap:4px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.keytile b{display:flex;gap:6px;align-items:center}
+.blur{filter:blur(6px);cursor:pointer;user-select:none}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg)}
+summary{cursor:pointer;font-weight:600}
+
+/* handshake */
+.phases{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:640px){.phases{grid-template-columns:minmax(0,1fr)}}
+.phases li{padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);opacity:.6;transition:opacity .2s,background .2s}
+.phases li b{display:block;font-family:var(--f-display);font-size:.95rem}
+.phases li span{display:block;color:var(--muted);font-size:.8rem}
+.phases li.cur{opacity:1;border-color:var(--accent);background:var(--accent-soft)}
+.phases li.done{opacity:1}
+.now{padding:12px;border-radius:12px;background:var(--bg);border:1px solid var(--line);display:grid;gap:6px;min-height:6.5rem}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent)}
+.checks{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line);font-size:.92rem}
+.checks li .st{width:1.3em;display:grid;place-items:center;flex:none;color:var(--muted)}
+.checks li.pass{border-color:var(--good)}.checks li.pass .st{color:var(--good)}
+.checks li.fail{border-color:var(--bad)}.checks li.fail .st{color:var(--bad)}
+.sp{width:1em;height:1em;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* certificate */
+.cert{border:2px solid var(--accent);border-radius:12px;padding:14px;background:var(--surface);display:grid;gap:8px}
+.cert h4{display:flex;gap:8px;align-items:center;font-family:var(--f-display);font-size:1rem}
+.cert dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:0}
+.cert dt{color:var(--muted);font-size:.85rem}
+.cert dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.cert .sigline{font-size:.82rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:6px}
+.warnpage{background:var(--bad-soft);border-radius:10px;padding:16px;display:grid;gap:8px;justify-items:center;text-align:center}
+.warnpage .i{width:2.4rem;height:2.4rem;color:var(--bad)}
+.warnpage ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;color:var(--bad);font-weight:600}
+.okpage{background:var(--good-soft);border-radius:10px;padding:16px;display:grid;gap:6px}
+.fakepage{background:var(--warn-soft);border-radius:10px;padding:16px;display:grid;gap:6px}
+.certgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.certgrid{grid-template-columns:minmax(0,1fr)}}
+
+/* auth */
+.tiles3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media (max-width:700px){.tiles3{grid-template-columns:minmax(0,1fr)}}
+.tile{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;gap:4px;align-content:start}
+.tile .ti{color:var(--accent);font-size:1.7rem}
+.tile b{font-family:var(--f-display)}
+.authgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,210px);gap:16px;align-items:start}
+@media (max-width:700px){.authgrid{grid-template-columns:minmax(0,1fr)}}
+.phone{width:min(100%,210px);border:3px solid var(--fg);border-radius:22px;padding:12px;min-height:150px;background:var(--bg);margin-inline:auto}
+.msg{background:var(--accent-soft);padding:8px 10px;border-radius:10px;margin-top:8px;font-size:.88rem}
+.fpad{width:96px;height:96px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;margin:4px auto;cursor:pointer;background:var(--bg);color:var(--accent);padding:0}
+.fpad .i{width:48px;height:48px}
+.fpad.scan{border-color:var(--accent);animation:pulse 1s ease-in-out}
+@keyframes pulse{50%{box-shadow:0 0 0 12px var(--accent-soft)}}
+.ccard{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-family:var(--f-mono);direction:ltr;font-size:.9rem}
+.reqs{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.result{padding:14px;border-radius:12px;display:grid;gap:6px}
+.result.good{background:var(--good-soft);color:var(--good)}
+.result.bad{background:var(--bad-soft);color:var(--bad)}
+.result p{color:var(--fg)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* signature */
+.sig3{display:grid;gap:14px}
+.numbox{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.numbox b{font-family:var(--f-mono);direction:ltr}
+
+/* all in one */
+.stepper{display:flex;flex-wrap:wrap;gap:8px}
+.stepper .btn{display:flex;gap:8px;align-items:center}
+.stepper .btn .num{width:22px;height:22px;font-size:.8rem}
+.badges{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.badges li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);opacity:.5;transition:opacity .25s,border-color .25s,background .25s}
+.badges li.lit{opacity:1;border-color:var(--good);background:var(--good-soft)}
+.badges li b{display:block;font-family:var(--f-display);font-size:.95rem}
+.badges li span.d{font-size:.85rem;color:var(--muted)}
+.orderrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+
+/* quiz */
+.quiz{max-width:780px;display:grid;gap:18px}
+.q{display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.q.done-good{border-color:var(--good)}
+.q.done-bad{border-color:var(--bad)}
+.q .opts{display:flex;flex-wrap:wrap;gap:8px}
+.fb{font-size:.92rem}
+.score{position:sticky;bottom:12px;justify-self:start}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3M14 9l2 2"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+<symbol id="i-finger" viewBox="0 0 24 24"><path d="M12 4a7 7 0 0 0-7 7v2"/><path d="M12 8a3 3 0 0 0-3 3v3a5 5 0 0 1-1 3"/><path d="M12 12v3a8 8 0 0 1-2 5"/><path d="M16 11a4 4 0 0 0-1.2-2.8"/><path d="M19 11v3c0 2-.5 4-1.5 5.5"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+<symbol id="i-cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-cert" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M7 9h10M7 12h6"/><circle cx="16" cy="18" r="3"/></symbol>
+<symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24"><path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a2 2 0 0 0-3-1z"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l3 12h11l2-8H6"/></symbol>
+<symbol id="i-quiz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
+<symbol id="i-handshake" viewBox="0 0 24 24"><path d="M3 12l4-4 4 2 3-2 4 3 3-1"/><path d="M3 12l5 6 3-1 2 2 3-2 4-3"/></symbol>
+</defs>
+</svg>
+
+<header class="top">
+  <div class="gutter topin">
+    <a class="brand" href="#home"><span class="logo" data-ic="shield"></span><span>معمل التشفير والمصادقة</span></a>
+    <div class="row top-actions">
+      <button class="btn sm" id="themeBtn" type="button" aria-pressed="false" title="تغيير مظهر الموقع">الوضع الفاتح</button>
+      <button class="btn sm" id="bigBtn" type="button" aria-pressed="false">تكبير الخط</button>
+    </div>
+  </div>
+  <nav class="gutter tabs" id="tabs" aria-label="مفاهيم الدرس"></nav>
+</header>
+
+<main class="gutter">
+
+<!-- ============ HOME ============ -->
+<section class="view" id="v-home">
+  <div class="hero">
+    <div class="vhead">
+      <p class="kicker">TLS · HTTPS · 2FA · Digital Signature</p>
+      <h1>الأمان لا يأتي من تقنية واحدة</h1>
+      <p class="lead">الاتصال الآمن يجمع بين التشفير والشهادات الرقمية والمصادقة والتوقيعات. لكل مفهوم في الدرس محاكاة تجرّبها بنفسك، وتنتقل بينها من الشريط العلوي.</p>
+    </div>
+    <div class="demo" aria-hidden="true">
+      <span class="lbl">ما يراه المتلصص على الشبكة</span>
+      <div class="demo-line mono" id="demo-line">password=12345678</div>
+      <p class="demo-cap"><span id="demo-ic" data-ic="unlock"></span><span id="demo-label">بدون تشفير: مقروءة للجميع</span></p>
+    </div>
+  </div>
+  <div class="cards">
+    <a class="card" href="#https"><span class="ci" data-ic="lock"></span><b>HTTP وHTTPS</b><span class="d">أرسل كلمة مرور وشاهد ما يقرؤه المتلصص في الحالتين.</span></a>
+    <a class="card" href="#symmetric"><span class="ci" data-ic="key"></span><b>التشفير المتماثل</b><span class="d">مفتاح واحد يقفل الرسالة ويفتحها.</span></a>
+    <a class="card" href="#public-key"><span class="ci" data-ic="unlock"></span><b>التشفير بالمفتاح العام</b><span class="d">مفتاحان مرتبطان: عام للجميع وخاص لصاحبه فقط.</span></a>
+    <a class="card" href="#handshake"><span class="ci" data-ic="handshake"></span><b>مصافحة TLS</b><span class="d">ثلاث مراحل قبل أن تبدأ البيانات بالانتقال.</span></a>
+    <a class="card" href="#certificate"><span class="ci" data-ic="cert"></span><b>الشهادة الرقمية</b><span class="d">كيف يتأكد المتصفح أن الموقع هو الموقع الحقيقي.</span></a>
+    <a class="card" href="#auth"><span class="ci" data-ic="finger"></span><b>المصادقة الثنائية</b><span class="d">عاملان مختلفان لإثبات هويتك، وجرّب دور المخترق.</span></a>
+    <a class="card" href="#signature"><span class="ci" data-ic="pen"></span><b>التوقيع الرقمي</b><span class="d">غيّر حرفاً واحداً في رسالة موقّعة وشاهد التحقق يفشل.</span></a>
+    <a class="card" href="#all-in-one"><span class="ci" data-ic="cart"></span><b>كل شيء معاً</b><span class="d">عملية شراء كاملة تظهر فيها كل التقنيات بالترتيب.</span></a>
+    <a class="card" href="#quiz"><span class="ci" data-ic="quiz"></span><b>اختبر نفسك</b><span class="d">أسئلة الدرس المحلولة وسؤال بنمط الامتحان.</span></a>
+  </div>
+  <div class="panel goals">
+    <h3>أهداف التعلم</h3>
+    <ul>
+      <li>شرح كيف يستخدم HTTPS تقنيات مختلفة لحماية الاتصال.</li>
+      <li>التمييز بين دور التشفير والشهادات الرقمية والمصادقة الثنائية والتوقيعات الرقمية.</li>
+      <li>تقييم طريقة مصادقة في سياق محدد، مع تبرير الاختيار باستخدام متطلبات الأمان وإمكانية الوصول.</li>
+    </ul>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: خريطة المعمل وكيف تذاكر الموضوع</summary>
+  <div class="detail-body">
+    <div><h3>الفكرة الرئيسية</h3><p>أمان المواقع ليس زرّاً واحداً ولا خوارزمية واحدة. عندما تدخل إلى موقع أو ترسل كلمة مرور أو تنفّذ عملية شراء، نحتاج إلى أكثر من ضمان: إخفاء البيانات عن المتلصص، التأكد من هوية الموقع، التأكد من هوية المستخدم، والتأكد من أن الرسالة لم يتم العبث بها.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>سرية البيانات</h3><p>تعني أن من لا يملك الصلاحية أو المفتاح المناسب لا يستطيع فهم البيانات أثناء انتقالها. يساهم التشفير وHTTPS في تحقيقها.</p></div>
+      <div class="detail-card"><h3>التحقق من الهوية</h3><p>يعني التأكد من الطرف الذي تتواصل معه. الشهادة الرقمية تساعد المتصفح على التحقق من هوية خادم الموقع، بينما 2FA تساعد الخدمة على التحقق من هوية المستخدم.</p></div>
+      <div class="detail-card"><h3>سلامة البيانات</h3><p>تعني اكتشاف أي تغيير غير مصرح به في الرسالة. التوقيع الرقمي يربط الرسالة بصاحب المفتاح الخاص ويسمح بكشف التعديل.</p></div>
+      <div class="detail-card"><h3>الكفاءة</h3><p>نحتاج إلى حماية قوية دون جعل الاتصال بطيئاً. لذلك تجمع الأنظمة عادةً بين آليات المفتاح العام لتأسيس الاتصال والتشفير المتماثل لحماية كمية البيانات الكبيرة.</p></div>
+    </div>
+    <div><h3>ترتيب دراسة الأقسام</h3><ul><li>ابدأ بـ HTTP وHTTPS لتفهم المشكلة التي يحلها التشفير.</li><li>انتقل إلى التشفير المتماثل ثم المفتاح العام لفهم نوعَي المفاتيح.</li><li>تابع مصافحة TLS والشهادة الرقمية لترى كيف يبدأ الاتصال الآمن.</li><li>ادرس 2FA والتوقيع الرقمي؛ فهما يعالجان هوية المستخدم وسلامة الرسائل، وليس مجرد إخفاء النص.</li><li>استخدم قسم «كل شيء معاً» لربط المفاهيم، ثم اختبر فهمك في الاختبار.</li></ul></div>
+    <p class="detail-callout"><b>طريقة الاستفادة من المعمل:</b> اقرأ الشرح أولاً، نفّذ التجربة بنفسك، غيّر قيمة واحدة في كل مرة، ثم فسّر النتيجة بكلماتك. المحاكاة للتعلّم وليست نظام تشفير أو تسجيل دخول حقيقياً.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ HTTPS ============ -->
+<section class="view" id="v-https" hidden>
+  <div class="vhead">
+    <p class="kicker">HTTPS = HTTP + TLS</p>
+    <h1>الفرق بين HTTP وHTTPS</h1>
+    <p class="lead">أرسل بيانات دخول عبر الاتصالين وشاهد ما يستطيع المتلصص على الشبكة قراءته.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> اضغط «تسجيل الدخول» وهو على HTTP، ثم بدّل إلى HTTPS وأرسل مرة أخرى.</p>
+      <div class="row"><span class="lbl">البروتوكول</span>
+        <div class="seg" id="h-seg"><button type="button" data-v="http" aria-pressed="true">HTTP</button><button type="button" data-v="https" aria-pressed="false">HTTPS</button></div>
+      </div>
+      <div class="browser">
+        <div class="bbar"><div class="url" id="h-url"></div><span class="tag" id="h-badge"></span></div>
+        <div class="bpage">
+          <div class="two">
+            <div><label class="lbl" for="h-user">اسم المستخدم</label><input class="inp" id="h-user" value="ahmed" dir="ltr"></div>
+            <div><label class="lbl" for="h-pass">كلمة المرور</label><input class="inp" id="h-pass" value="12345678" dir="ltr"></div>
+          </div>
+          <div><button class="btn primary" id="h-send" type="button">تسجيل الدخول</button></div>
+        </div>
+      </div>
+      <div class="stage" id="h-stage" aria-label="مسار البيانات عبر الشبكة">
+        <div class="wire"></div>
+        <div class="node" id="h-b"><div class="ico" data-ic="monitor"></div><b>المتصفح</b><div class="slot" id="h-btag"></div></div>
+        <div class="node" id="h-e"><div class="ico" data-ic="eye"></div><b>المتلصص</b><span class="muted">يراقب الشبكة</span></div>
+        <div class="node" id="h-s"><div class="ico" data-ic="server"></div><b>الموقع</b><span class="muted">mybank.example</span></div>
+      </div>
+      <div class="two">
+        <div class="stack"><span class="lbl">ما يراه المتلصص</span><div class="out mono" id="h-eve">—</div><div id="h-eve-v"></div></div>
+        <div class="stack"><span class="lbl">ما يصل إلى الموقع</span><div class="out" id="h-srv">—</div></div>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>في HTTP تنتقل البيانات كما كُتبت، فيقرؤها أي طرف على الطريق.</li>
+        <li>HTTPS هو HTTP منقول عبر اتصال TLS مؤمَّن، فتصل البيانات مشفّرة.</li>
+        <li>الموقع يفكّ التشفير لأنه يشارك المتصفح مفتاح الجلسة، والمتلصص لا يملكه.</li>
+        <li>تذكّر: HTTP هي طريقة التواصل بين المتصفح وخادم الموقع، وTLS هو ما يؤمّن هذا الاتصال.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: HTTP وHTTPS ولماذا نحتاج TLS</summary>
+  <div class="detail-body">
+    <div><h3>ما هو HTTP؟</h3><p>HTTP هو بروتوكول يحدد طريقة تبادل الطلبات والاستجابات بين المتصفح وخادم الموقع. في الاتصال العادي HTTP لا توجد طبقة TLS التي تحمي محتوى الاتصال؛ لذلك يمكن لطرف يستطيع مراقبة المسار الشبكي أن يطّلع على البيانات غير المشفّرة، وقد يتمكن من العبث بها.</p></div>
+    <div><h3>ما الذي يضيفه HTTPS؟</h3><p>HTTPS هو استخدام HTTP داخل اتصال محمي بواسطة TLS. قبل تبادل بيانات الصفحة، ينشئ المتصفح والخادم اتصالاً آمناً ويتفقان على مفاتيح الجلسة. بعد ذلك تُشفّر البيانات أثناء انتقالها، كما يوفر TLS حماية لسلامة البيانات والتحقق من هوية الخادم وفق إعداد الشهادة.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>في تجربة HTTP</h3><p>اسم المستخدم وكلمة المرور يظهران كنص واضح في المحاكاة. هذا يوضّح خطر إرسال بيانات حساسة دون تشفير.</p></div>
+      <div class="detail-card"><h3>في تجربة HTTPS</h3><p>المتلصص يرى بيانات مشفّرة لا يستطيع تفسيرها من دون مفاتيح الجلسة. الخادم المصرّح له يفكّ التشفير ويعالج الطلب.</p></div>
+    </div>
+    <div><h3>ماذا لا يعني رمز القفل؟</h3><p>HTTPS لا يثبت أن المتجر أمين أو أن محتوى الموقع صحيح أو أن الجهة المالكة جديرة بالثقة. هو يحمي الاتصال مع النطاق الذي تم التحقق من شهادته. قد يستخدم موقع احتيالي HTTPS صحيحاً لنطاقه الاحتيالي.</p></div>
+    <div><h3>جرّب ولاحظ</h3><ul><li>أرسل بيانات الدخول في وضع HTTP ولاحظ ظهورها لدى المتلصص.</li><li>حوّل إلى HTTPS وأرسل البيانات نفسها ولاحظ أن المعروض أصبح نصاً مشفّراً.</li><li>قارن بين ما يراه المتلصص وما يصل إلى الخادم؛ الخادم وحده يعالج المحتوى بعد فك التشفير.</li></ul></div>
+    <p class="detail-callout"><b>الخلاصة:</b> HTTP يحدد شكل التواصل، وTLS يؤمّن هذا التواصل. HTTPS هو الجمع بينهما.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ SYMMETRIC ============ -->
+<section class="view" id="v-symmetric" hidden>
+  <div class="vhead">
+    <p class="kicker">Symmetric Encryption</p>
+    <h1>التشفير المتماثل</h1>
+    <p class="lead">المفتاح نفسه يُستخدم للتشفير ولفكّ التشفير. غيّر مفتاح المستقبل وشاهد ماذا يحدث.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> اكتب رسالتك، ثم حرّك مفتاح المستقبل بعيداً عن مفتاح المرسل.</p>
+      <div class="sgrid">
+        <div class="person ps">
+          <h3><span data-ic="monitor"></span> المرسل</h3>
+          <label class="lbl" for="s-msg">الرسالة الأصلية</label>
+          <textarea class="inp" id="s-msg" rows="2">نلتقي بعد المدرسة 5</textarea>
+          <div class="keyrow"><label class="lbl" for="s-k1">المفتاح السري</label><span class="keybadge"><span data-ic="key"></span><b id="s-k1v">7</b></span></div>
+          <input type="range" id="s-k1" min="1" max="25" value="7">
+        </div>
+        <div class="person pr">
+          <h3><span data-ic="monitor"></span> المستقبل</h3>
+          <div class="keyrow"><label class="lbl" for="s-k2">مفتاح المستقبل</label><span class="keybadge"><span data-ic="key"></span><b id="s-k2v">7</b></span></div>
+          <input type="range" id="s-k2" min="1" max="25" value="7">
+          <span class="lbl">الناتج بعد فكّ التشفير</span>
+          <div class="out" id="s-result">…</div>
+          <div id="s-status"></div>
+        </div>
+        <div class="person pc">
+          <h3><span data-ic="eye"></span> النص المشفّر أثناء الانتقال</h3>
+          <div class="out cipher" id="s-cipher">…</div>
+          <p class="muted">يراه الجميع على الشبكة، لكن لا يفهمه إلا من يملك المفتاح.</p>
+          <div class="strip" id="s-strip" aria-label="جدول استبدال الحروف"></div>
+        </div>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>مفتاح واحد يقوم بالمهمتين: التشفير وفكّ التشفير.</li>
+        <li>هذه الطريقة سريعة وكفؤة، لذلك تحمي بيانات الجلسة في TLS.</li>
+        <li>المشكلة: كيف يصل المفتاح إلى الطرف الآخر دون أن يراه أحد؟ هذا ما يحلّه المفتاح العام في الصفحة التالية.</li>
+        <li>التشفير هنا مبسّط للتوضيح (إزاحة الحروف). الأنظمة الحقيقية تستخدم خوارزميات أقوى بكثير مثل AES، لكن الفكرة واحدة.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: التشفير المتماثل والمفتاح السري</summary>
+  <div class="detail-body">
+    <div><h3>التعريف</h3><p>التشفير المتماثل هو أسلوب يستخدم فيه الطرفان المفتاح السري نفسه: المرسل يستخدمه لتحويل النص الأصلي (Plaintext) إلى نص مشفّر (Ciphertext)، والمستقبل يستخدم المفتاح نفسه لفك التشفير واستعادة الرسالة.</p></div>
+    <div><h3>خطوات العمل</h3><ul><li>يكتب المرسل الرسالة الأصلية.</li><li>تطبّق خوارزمية التشفير مع المفتاح السري لإنتاج نص غير مفهوم لمن لا يملك المفتاح.</li><li>ينقل الطرفان النص المشفّر عبر الشبكة.</li><li>يستخدم المستقبل المفتاح السري المطابق لفك التشفير.</li></ul></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>نقطة القوة</h3><p>سريع وفعّال حسابياً، ولذلك يناسب تشفير كميات كبيرة من البيانات، مثل بيانات جلسة HTTPS.</p></div>
+      <div class="detail-card"><h3>التحدي الأساسي</h3><p>توزيع المفتاح: كيف يحصل الطرف الآخر على المفتاح نفسه بطريقة آمنة دون أن يعترضه مهاجم؟</p></div>
+    </div>
+    <div><h3>فهم المحاكاة</h3><p>حرّك مفتاح المرسل ومفتاح المستقبل. عندما يتطابق الرقمان تعود الرسالة الأصلية، وعندما يختلفان ينتج نص غير صحيح. هذا تمثيل مبسط لفكرة اعتماد الطرفين على سر واحد، وليس خوارزمية آمنة للاستخدام الحقيقي.</p></div>
+    <div><h3>أمثلة واقعية</h3><p>AES من الخوارزميات المعروفة للتشفير المتماثل. لا تعتمد الأنظمة الحقيقية على إزاحة الحروف؛ بل تستخدم خوارزميات مصممة لمقاومة التحليل والهجمات.</p></div>
+    <p class="detail-callout"><b>تذكّر:</b> السرعة ميزة التشفير المتماثل، أما مشاركة المفتاح بأمان فهي التحدي الذي تساعد آليات المفتاح العام ومصافحة TLS على معالجته.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ PUBLIC KEY ============ -->
+<section class="view" id="v-public-key" hidden>
+  <div class="vhead">
+    <p class="kicker">Public-Key Encryption</p>
+    <h1>التشفير بالمفتاح العام</h1>
+    <p class="lead">لكل مستقبل مفتاحان مرتبطان. ما يُشفَّر بأحدهما لا يفتحه إلا الآخر. الأرقام هنا حقيقية لكنها صغيرة لتتمكن من متابعتها.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <ol class="steps">
+        <li><span class="num">1</span>
+          <div class="stack">
+            <b>المستقبل ينشئ زوج مفاتيح</b>
+            <div class="two">
+              <div class="keytile"><b><span data-ic="unlock"></span> المفتاح العام</b><span class="mono">e = 17 , n = 3233</span><span class="muted">يُنشر للجميع بلا خطر.</span></div>
+              <div class="keytile"><b><span data-ic="key"></span> المفتاح الخاص</b><span class="mono blur" id="p-priv" tabindex="0" role="button" aria-label="إظهار المفتاح الخاص">d = 2753 , n = 3233</span><span class="muted">لا يغادر جهاز المستقبل. اضغط لإظهاره.</span></div>
+            </div>
+          </div>
+        </li>
+        <li><span class="num">2</span>
+          <div class="stack">
+            <b>المرسل يشفّر بالمفتاح العام</b>
+            <label class="lbl" for="p-msg">الرسالة</label>
+            <input class="inp" id="p-msg" value="كلمة السر 2468">
+            <div><button class="btn primary" id="p-enc" type="button">شفّر بالمفتاح العام</button></div>
+            <div class="out cipher mono" id="p-cipher">—</div>
+          </div>
+        </li>
+        <li><span class="num">3</span>
+          <div class="stack">
+            <b>من يستطيع القراءة؟</b>
+            <div class="two">
+              <div class="stack"><button class="btn" id="p-eve" type="button" disabled>المتلصص يحاول بالمفتاح العام</button><div class="out" id="p-eve-o">—</div></div>
+              <div class="stack"><button class="btn" id="p-dec" type="button" disabled>المستقبل يفكّ بمفتاحه الخاص</button><div class="out" id="p-dec-o">—</div></div>
+            </div>
+          </div>
+        </li>
+      </ol>
+      <details id="p-math"><summary>كيف حُسب الحرف الأول؟</summary><p class="mono" id="p-math-t">شفّر رسالة أولاً.</p></details>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>المتلصص يعرف المفتاح العام والنص المشفّر، ومع ذلك لا يستطيع القراءة.</li>
+        <li>يمكن نشر المفتاح العام علناً لأنه لا يفتح شيئاً.</li>
+        <li>في TLS يُستخدم المفتاح العام للمصادقة وللاتفاق على مفاتيح الجلسة.</li>
+        <li>هذه الطريقة أبطأ من التشفير المتماثل، لذلك لا تُستخدم لنقل كل البيانات.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: التشفير بالمفتاح العام والخاص</summary>
+  <div class="detail-body">
+    <div><h3>فكرة المفتاحين</h3><p>يسمى هذا الأسلوب التشفير غير المتماثل (Asymmetric Cryptography)، لأن لكل مستخدم زوجاً مترابطاً من المفاتيح: مفتاح عام يمكن مشاركته، ومفتاح خاص يجب أن يبقى سرياً لدى صاحبه. العلاقة الرياضية بينهما تسمح بتنفيذ عمليات تشفير أو توقيع والتحقق بحسب الغرض.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>المفتاح العام</h3><p>يمكن نشره للآخرين. في مثال السرية، يستخدمه المرسل لتشفير رسالة موجهة إلى صاحب المفتاح الخاص.</p></div>
+      <div class="detail-card"><h3>المفتاح الخاص</h3><p>يحتفظ به صاحبه ولا يشاركه. في مثال السرية، يستخدمه المستقبل لفك الرسالة التي شُفّرت بالمفتاح العام المقابل.</p></div>
+    </div>
+    <div><h3>مثال صندوق البريد</h3><p>تخيّل صندوقاً يستطيع أي شخص إسقاط رسالة فيه باستخدام فتحة عامة، لكن فتح الصندوق وإخراج الرسائل يحتاج إلى مفتاح لا يملكه إلا صاحبه. المفتاح العام يشبه وسيلة الإيداع، والخاص يشبه مفتاح الفتح.</p></div>
+    <div><h3>لماذا لا نستخدمه لكل البيانات؟</h3><p>عملياته أثقل وأبطأ من التشفير المتماثل. لذلك تستخدم الأنظمة الحديثة التشفير غير المتماثل لأغراض مثل المصادقة أو إنشاء/الاتفاق على أسرار الجلسة، ثم تستخدم تشفيراً متماثلاً سريعاً لحماية البيانات المتبادلة.</p></div>
+    <div><h3>عن الأرقام في التجربة</h3><p>القيم e وd وn في الصفحة مثال تعليمي مبسط على RSA لتوضيح العلاقة الحسابية. حجمها صغير جداً وغير آمن إطلاقاً للاستخدام الحقيقي. كذلك فإن محاكاة زر محاولة المتلصص تبسيط للفكرة وليست اختباراً أمنياً فعلياً.</p></div>
+    <p class="detail-callout"><b>تنبيه تقني:</b> لا ينبغي اعتبار خطوات RSA المصغّرة في هذه الصفحة وصفاً حرفياً لكل مصافحات TLS الحديثة؛ فالإصدارات الحديثة مثل TLS 1.3 تعتمد عادةً على تبادل مفاتيح مؤقت (مثل Diffie–Hellman) بدلاً من تشفير سر الجلسة مباشرةً بـRSA.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ HANDSHAKE ============ -->
+<section class="view" id="v-handshake" hidden>
+  <div class="vhead">
+    <p class="kicker">TLS Handshake</p>
+    <h1>مصافحة TLS</h1>
+    <p class="lead">قبل أن يرسل المتصفح أي بيانات، يمرّ هو والخادم بثلاث مراحل لإنشاء اتصال آمن.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> اضغط «الخطوة التالية» وتابع كل رسالة، أو شغّل العرض التلقائي.</p>
+      <ol class="phases" id="hs-phases">
+        <li><b>١. التحقق من الشهادة</b><span>آلية الحماية: التشفير بالمفتاح العام</span></li>
+        <li><b>٢. اشتقاق مفاتيح الجلسة</b><span>آلية الحماية: التشفير بالمفتاح العام</span></li>
+        <li><b>٣. تبادل البيانات</b><span>آلية الحماية: التشفير المتماثل</span></li>
+      </ol>
+      <div class="stage" id="hs-stage">
+        <div class="wire"></div>
+        <div class="node" id="hs-c"><div class="ico" data-ic="monitor"></div><b>المتصفح</b><div class="slot" id="hs-ctag"></div></div>
+        <div class="node" id="hs-s"><div class="ico" data-ic="server"></div><b>خادم الموقع</b><div class="slot" id="hs-stag"></div></div>
+      </div>
+      <div class="now" aria-live="polite">
+        <div class="row" style="justify-content:space-between"><span class="lbl" id="hs-step">اضغط للبدء</span><div class="dots" id="hs-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <p id="hs-text">ستمرّ العملية بثماني رسائل وخطوات.</p>
+        <ul class="checks" id="hs-checks" hidden>
+          <li><span class="st"></span>جهة الإصدار موثوقة (سلسلة الثقة)</li>
+          <li><span class="st"></span>الشهادة سارية الصلاحية</li>
+          <li><span class="st"></span>اسم النطاق في الشهادة يطابق اسم الموقع</li>
+        </ul>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="hs-next" type="button">الخطوة التالية</button>
+        <button class="btn" id="hs-auto" type="button">تشغيل تلقائي</button>
+        <button class="btn" id="hs-reset" type="button">إعادة</button>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>المرحلتان الأوليان تعتمدان على المفتاح العام: التحقق من الهوية، والاتفاق على مفاتيح الجلسة.</li>
+        <li>مفتاح الجلسة لا يُرسل عبر الشبكة، بل يشتقّه الطرفان من سرّ مشترك.</li>
+        <li>بعد ذلك تُحمى البيانات بالتشفير المتماثل لأنه سريع.</li>
+        <li>إصدار TLS ومجموعة التشفير يحدّدان الخوارزميات والقواعد التي سيعتمدها الطرفان.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: مصافحة TLS من البداية حتى تبادل البيانات</summary>
+  <div class="detail-body">
+    <div><h3>ما المقصود بالمصافحة؟</h3><p>TLS Handshake هي مرحلة التفاوض الأولية بين العميل (المتصفح) والخادم. هدفها الاتفاق على إعدادات الاتصال، والتحقق من هوية الخادم، وإنشاء مفاتيح تُستخدم لاحقاً لحماية البيانات. لا تُعد المصافحة نفسها محتوى الموقع؛ بل تجهّز قناة الاتصال الآمنة.</p></div>
+    <div><h3>المراحل التعليمية في المحاكاة</h3><ul><li><b>التحقق من الشهادة:</b> يستقبل المتصفح شهادة الخادم ويتحقق من سلسلة الثقة والصلاحية واسم النطاق.</li><li><b>إنشاء مفاتيح الجلسة:</b> يتفق الطرفان على أسرار واشتقاقات مفاتيح مشتركة وفق آلية التبادل المتفق عليها.</li><li><b>تبادل البيانات:</b> بعد اكتمال الإعداد، تُحمى رسائل التطبيق باستخدام تشفير متماثل ومصادقة للبيانات.</li></ul></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>لماذا التحقق أولاً؟</h3><p>حتى لا ينشئ المتصفح اتصالاً مشفّراً مع خادم ينتحل هوية الموقع المقصود.</p></div>
+      <div class="detail-card"><h3>لماذا مفاتيح جلسة؟</h3><p>لأنها مفاتيح مخصصة للاتصال الحالي وتسمح بتشفير البيانات بكفاءة، بدلاً من استخدام عمليات المفتاح العام لكل رسالة.</p></div>
+    </div>
+    <div><h3>كيف تستخدم المحاكاة؟</h3><p>اضغط «الخطوة التالية» لمشاهدة الرسائل الثماني، وراقب انتقال الرسائل بين المتصفح والخادم. لاحظ أن ظهور الشهادة يسبق الاعتماد على الاتصال، وأن البيانات تصبح مشفّرة في مرحلة تبادل البيانات.</p></div>
+    <p class="detail-callout"><b>ملاحظة للدقة:</b> تفاصيل المصافحة تختلف حسب إصدار TLS ومجموعة التشفير. العرض هنا نموذج تعليمي لتوضيح الوظائف الأساسية، وليس تتبعاً حرفياً لكل رسالة في TLS 1.3.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ CERTIFICATE ============ -->
+<section class="view" id="v-certificate" hidden>
+  <div class="vhead">
+    <p class="kicker">Digital Certificate</p>
+    <h1>الشهادة الرقمية</h1>
+    <p class="lead">بطاقة هوية إلكترونية للموقع. اختر حالة وشاهد كيف يفحصها المتصفح قبل أن يثق بالموقع.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> مرّ على الحالات الخمس. انتبه جيداً إلى الحالة الأخيرة.</p>
+      <p>أنت تريد زيارة: <span class="tag info mono">mybank.example</span></p>
+      <div class="row" id="c-list"></div>
+      <div class="certgrid">
+        <div class="browser">
+          <div class="bbar"><div class="url" id="c-url"></div></div>
+          <div class="bpage" id="c-page"></div>
+        </div>
+        <div class="stack">
+          <div class="cert" id="c-cert"></div>
+          <ul class="checks" id="c-checks">
+            <li><span class="st"></span>جهة الإصدار موثوقة (سلسلة الثقة)</li>
+            <li><span class="st"></span>الشهادة سارية الصلاحية</li>
+            <li><span class="st"></span>اسم النطاق في الشهادة يطابق العنوان</li>
+          </ul>
+        </div>
+      </div>
+      <div id="c-note"></div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>الشهادة الرقمية تساعد المتصفح على التأكد أن الاتصال يتم مع الموقع الذي يدّعي أنه هو.</li>
+        <li>يتحقق المتصفح من الجهة المصدِّرة والصلاحية واسم النطاق.</li>
+        <li>اسم النطاق مثل example.com هو عنوان الموقع، والشهادة مرتبطة بالنطاق الذي تتصل به.</li>
+        <li>قد يستخدم موقع احتيالي HTTPS وشهادة صحيحة لاسمه هو. القفل يعني اتصالاً مشفّراً، لا يعني أن المحتوى موثوق.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: الشهادة الرقمية وسلسلة الثقة</summary>
+  <div class="detail-body">
+    <div><h3>ما هي الشهادة الرقمية؟</h3><p>الشهادة الرقمية (Digital Certificate) ملف إلكتروني يربط هوية أو اسم نطاق بمفتاح عام، وتوقّعه جهة إصدار شهادات (Certificate Authority - CA). يستطيع المتصفح استخدام توقيع الجهة وسلسلة الشهادات للتحقق من أن المفتاح العام مرتبط بالنطاق الذي يزوره.</p></div>
+    <div><h3>ما الذي يفحصه المتصفح؟</h3><ul><li><b>جهة الإصدار وسلسلة الثقة:</b> هل يمكن بناء سلسلة توقيعات إلى جهة موثوقة لدى الجهاز؟</li><li><b>الصلاحية الزمنية:</b> هل الشهادة ضمن تاريخ بداية ونهاية صلاحيتها؟</li><li><b>اسم النطاق:</b> هل الاسم الموجود في الشهادة يطابق النطاق الذي طلبه المستخدم؟</li></ul></div>
+    <div><h3>فهم الحالات الخمس</h3><p>الحالة السليمة تمرّ بالفحوص الثلاثة. اختلاف النطاق يفشل المطابقة، والشهادة المنتهية تفشل فحص الوقت، والشهادة الصادرة من جهة غير موثوقة تفشل سلسلة الثقة. أما الموقع الاحتيالي الذي يملك شهادة صحيحة لنطاقه، فقد يجتاز الفحوص لأن الشهادة تثبت هوية ذلك النطاق فقط، لا أنه الموقع الذي كنت تقصده.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>الشهادة تثبت ماذا؟</h3><p>تساعد في ربط نطاق بمفتاح عام والتحقق من هوية الخادم أثناء الاتصال.</p></div>
+      <div class="detail-card"><h3>الشهادة لا تثبت ماذا؟</h3><p>لا تضمن نزاهة صاحب الموقع أو جودة المنتج أو صدق المعلومات أو خلو الموقع من الاحتيال.</p></div>
+    </div>
+    <p class="detail-callout"><b>قاعدة مهمة:</b> لا تكتفِ برؤية HTTPS أو رمز القفل؛ راجع اسم النطاق نفسه وتأكد أنك وصلت إلى العنوان الصحيح.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ AUTH ============ -->
+<section class="view" id="v-auth" hidden>
+  <div class="vhead">
+    <p class="kicker">2FA · MFA</p>
+    <h1>المصادقة الثنائية</h1>
+    <p class="lead">لإثبات هويتك يُطلب منك عاملان مستقلان من فئتين مختلفتين. وإذا سُرق أحدهما يبقى الآخر حارساً للحساب.</p>
+  </div>
+  <div class="tiles3">
+    <div class="tile"><span class="ti" data-ic="brain"></span><b>المعرفة</b><span>شيء تعرفه</span><span class="muted">كلمة المرور، رقم PIN، إجابة سؤال سري.</span></div>
+    <div class="tile"><span class="ti" data-ic="phone"></span><b>الحيازة</b><span>شيء تملكه</span><span class="muted">الهاتف المحمول، تطبيق المصادقة، مفتاح أمان.</span></div>
+    <div class="tile"><span class="ti" data-ic="finger"></span><b>السمات الحيوية</b><span>شيء يخص جسمك</span><span class="muted">بصمة الإصبع، التعرف على الوجه، بصمة العين.</span></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> سجّل الدخول بنفسك أولاً. ثم فعّل «أنا المخترق» وقارن بين وجود العامل الثاني وغيابه.</p>
+      <div class="stack"><span class="lbl">اختر الخدمة</span><div class="row" id="a-svc"></div></div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="a-tfa" checked> تفعيل العامل الثاني</label>
+        <label class="check"><input type="checkbox" id="a-atk"> أنا المخترق: سرقت العامل الأول</label>
+      </div>
+      <div class="reqs" id="a-req"></div>
+      <div class="authgrid">
+        <div class="stack" id="a-body" aria-live="polite"></div>
+        <div class="phone" id="a-phone" aria-label="هاتف المستخدم"></div>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>المصادقة الثنائية (2FA) عاملان مستقلان لإثبات الهوية. المصادقة متعددة العوامل (MFA) عاملان أو أكثر.</li>
+        <li>كلمتا مرور ليستا مصادقة ثنائية، لأنهما من فئة واحدة. ما يُسرق مرة يُسرق مرتين.</li>
+        <li>العامل الثاني يقلّل احتمال الدخول غير المصرّح به حتى لو سُرّبت كلمة المرور.</li>
+        <li>المخترق الذي يعرف كلمة المرور فقط لا يملك الهاتف ولا البصمة.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: المصادقة الثنائية 2FA والمصادقة متعددة العوامل MFA</summary>
+  <div class="detail-body">
+    <div><h3>ما هي المصادقة؟</h3><p>المصادقة (Authentication) هي عملية التحقق من أن الشخص الذي يحاول الدخول هو فعلاً صاحب الحساب. وهي تختلف عن التفويض (Authorization)، الذي يحدد ما الذي يُسمح للمستخدم بفعله بعد إثبات هويته.</p></div>
+    <div><h3>فئات عوامل المصادقة</h3><ul><li><b>شيء تعرفه:</b> كلمة مرور أو رقم PIN.</li><li><b>شيء تملكه:</b> هاتف أو تطبيق رموز تحقق أو مفتاح أمان.</li><li><b>شيء يخصك حيوياً:</b> بصمة إصبع أو وجه أو سمة حيوية أخرى.</li></ul></div>
+    <div><h3>متى تكون المصادقة ثنائية فعلاً؟</h3><p>يجب استخدام عاملين من فئتين مختلفتين. كلمتا مرور لا تشكلان 2FA لأنهما من فئة المعرفة نفسها. كلمة مرور مع رمز من تطبيق مصادقة أو مفتاح أمان يجمعان فئتين مختلفتين.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>2FA</h3><p>تعتمد على عاملين مستقلين من فئتين مختلفتين لإثبات الهوية.</p></div>
+      <div class="detail-card"><h3>MFA</h3><p>تعني استخدام عاملين أو أكثر. كل 2FA هي MFA، لكن MFA قد تستخدم أكثر من عاملين.</p></div>
+    </div>
+    <div><h3>ماذا تثبت تجربة المخترق؟</h3><p>عند سرقة كلمة المرور فقط، قد ينجح المهاجم في تجاوز العامل الأول، لكن العامل الثاني يمنع الدخول إذا ظل تحت سيطرة المستخدم. أما إذا سرق المهاجم العاملين معاً أو استولى على جلسة المستخدم، فالمصادقة الثنائية وحدها لا تضمن الحماية المطلقة.</p></div>
+    <p class="detail-callout"><b>نصيحة أمنية:</b> استخدم كلمة مرور فريدة، وفعّل العامل الثاني، وفضّل مفاتيح الأمان أو وسائل مقاومة التصيد عند توفرها. لا تشارك رموز التحقق مع أي شخص.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ SIGNATURE ============ -->
+<section class="view" id="v-signature" hidden>
+  <div class="vhead">
+    <p class="kicker">Digital Signature</p>
+    <h1>التوقيع الرقمي</h1>
+    <p class="lead">لا يخفي الرسالة، لكنه يثبت أنها صدرت ممن يملك المفتاح الخاص وأنها لم تتغيّر بعد التوقيع.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel sig3">
+      <p class="try"><b>جرّب:</b> وقّع الرسالة، ثم اضغط «المتلصص يعدّل الرسالة» وتحقق. أعد الرسالة وجرّب «توقيع مزوَّر».</p>
+      <div class="person">
+        <h3><span data-ic="pen"></span> المرسل</h3>
+        <label class="lbl" for="g-msg">الرسالة</label>
+        <input class="inp" id="g-msg" value="حوّل 100 ريال إلى حساب أحمد">
+        <div class="row"><button class="btn primary" id="g-sign" type="button">وقّع بالمفتاح الخاص</button><span class="tag warn">الرسالة نفسها ليست سرية</span></div>
+        <div class="numbox"><span>بصمة الرسالة (Hash)</span><b id="g-h">—</b></div>
+        <div class="numbox"><span>التوقيع</span><b id="g-sig">—</b></div>
+      </div>
+      <div class="person">
+        <h3><span data-ic="server"></span> ما وصل إلى المستقبل</h3>
+        <label class="lbl" for="g-rmsg">الرسالة كما وصلت (يمكنك تعديلها)</label>
+        <input class="inp" id="g-rmsg" value="" disabled>
+        <div class="numbox"><span>التوقيع المرفق</span><b id="g-rsig">—</b></div>
+        <div class="row">
+          <button class="btn" id="g-tamper" type="button" disabled>المتلصص يعدّل الرسالة</button>
+          <button class="btn" id="g-forge" type="button" disabled>توقيع مزوَّر</button>
+          <button class="btn" id="g-reset" type="button" disabled>أعد الأصل</button>
+        </div>
+        <button class="btn primary" id="g-verify" type="button" disabled>تحقق بالمفتاح العام</button>
+        <div id="g-res" aria-live="polite"></div>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>التوقيع الرقمي يختلف عن التشفير: هو إثبات مصدر البيانات وسلامتها، وليس إخفاءً لها.</li>
+        <li>يُوقَّع بالمفتاح الخاص ويُتحقق منه بالمفتاح العام.</li>
+        <li>تغيير حرف أو رقم واحد بعد التوقيع يجعل التحقق يفشل.</li>
+        <li>من لا يملك المفتاح الخاص لا يستطيع صنع توقيع يقبله التحقق.</li>
+        <li>البصمة هنا دالة تلخيص مبسّطة للتوضيح.</li>
+      </ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: التوقيع الرقمي والبصمة والتحقق</summary>
+  <div class="detail-body">
+    <div><h3>ما وظيفة التوقيع الرقمي؟</h3><p>التوقيع الرقمي آلية تشفيرية تساعد على إثبات أن الرسالة وُقّعت باستخدام المفتاح الخاص المرتبط بصاحب المفتاح العام، كما تسمح باكتشاف تغيير الرسالة بعد التوقيع. لا يهدف التوقيع إلى إخفاء محتوى الرسالة.</p></div>
+    <div><h3>كيف تتم العملية؟</h3><ul><li>تُمرر الرسالة إلى دالة تجزئة (Hash) لإنتاج بصمة رقمية ثابتة الطول.</li><li>ينشئ المرسل توقيعاً للبصمة باستخدام خوارزمية التوقيع ومفتاحه الخاص.</li><li>يرسل الرسالة والتوقيع إلى المستقبل.</li><li>يتحقق المستقبل من التوقيع باستخدام المفتاح العام، ويقارن النتيجة ببصمة الرسالة التي استلمها.</li></ul></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>إذا لم تتغير الرسالة</h3><p>ينجح التحقق إذا كان التوقيع صحيحاً ومطابقاً للرسالة والمفتاح العام المستخدم.</p></div>
+      <div class="detail-card"><h3>إذا تغير حرف واحد</h3><p>تتغير البصمة عادةً بصورة كبيرة، فلا تتطابق مع التوقيع الأصلي ويفشل التحقق.</p></div>
+    </div>
+    <div><h3>الفرق بين التشفير والتوقيع</h3><p>التشفير يهدف إلى السرية: من يستطيع قراءة المحتوى؟ أما التوقيع الرقمي فيهدف إلى التحقق من المصدر وسلامة المحتوى: هل وقّع صاحب المفتاح الخاص هذه الرسالة؟ وهل تغيرت منذ توقيعها؟ يمكن استخدام التقنيتين معاً لكنهما ليستا الشيء نفسه.</p></div>
+    <div><h3>حدود المحاكاة</h3><p>البصمة والتوقيع في هذه الصفحة مبسّطان لأغراض الشرح، ولا يمثلان تطبيقاً إنتاجياً لخوارزميات التوقيع أو دوال التجزئة الحديثة.</p></div>
+    <p class="detail-callout"><b>تذكّر:</b> التوقيع بالمفتاح الخاص، والتحقق بالمفتاح العام. لا يعني نجاح التوقيع أن مضمون الرسالة صادق؛ بل يعني أن التوقيع متوافق مع الرسالة والمفتاح المستخدم.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ ALL IN ONE ============ -->
+<section class="view" id="v-all-in-one" hidden>
+  <div class="vhead">
+    <p class="kicker">Putting it all together</p>
+    <h1>كل شيء معاً: شراء منتج</h1>
+    <p class="lead">خمس خطوات في عملية شراء واحدة. شاهد أي تقنية تعمل في كل خطوة، وماذا يرى المتلصص.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="stepper" id="o-steps" role="tablist"></div>
+      <div class="browser">
+        <div class="bbar"><div class="url safe" id="o-url"></div></div>
+        <div class="bpage" id="o-page"></div>
+      </div>
+      <div class="stack"><span class="lbl">ما يراه المتلصص في هذه الخطوة</span><div class="out" id="o-eve"></div></div>
+      <div class="row"><button class="btn" id="o-prev" type="button">السابق</button><button class="btn primary" id="o-next" type="button">التالي</button></div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يحميك الآن</h3>
+      <ul class="badges" id="o-badges" style="padding:0;list-style:none"></ul>
+    </aside>
+  </div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: كيف تعمل تقنيات الأمان معاً في عملية شراء</summary>
+  <div class="detail-body">
+    <div><h3>لماذا نحتاج أكثر من تقنية؟</h3><p>عملية الشراء تجمع أكثر من طرف وأكثر من نوع بيانات: المتصفح يتصل بالمتجر، يحتاج إلى التأكد من هوية المتجر، ثم يسجل المستخدم الدخول، ويرسل تفاصيل الطلب، وقد يحتاج النظام إلى التحقق من سلامة الطلب. كل تقنية في الدرس تعالج جانباً مختلفاً من هذه الرحلة.</p></div>
+    <div><h3>تسلسل الخطوات في المحاكاة</h3><ul><li><b>فتح الموقع:</b> يستخدم HTTPS/TLS لحماية الاتصال والبيانات المتبادلة.</li><li><b>التحقق من الموقع:</b> تساعد الشهادة الرقمية المتصفح على التأكد من هوية النطاق.</li><li><b>تسجيل الدخول:</b> تضيف المصادقة الثنائية عاملاً إضافياً بجانب كلمة المرور.</li><li><b>إرسال الطلب:</b> يحمي TLS بيانات الطلب أثناء انتقالها عبر الشبكة.</li><li><b>التحقق من الطلب:</b> يوضّح التوقيع الرقمي كيف يمكن التحقق من المصدر وسلامة البيانات.</li></ul></div>
+    <div><h3>كيف تقرأ لوحة «ما يراه المتلصص»؟</h3><p>هذه اللوحة تعرض نموذجاً لما قد يتمكن مراقب الشبكة من ملاحظته في كل خطوة. عند وجود اتصال مشفّر، لا يستطيع المتلصص قراءة محتوى الطلب كما يقرأ النص العادي، حتى لو كان يرى أن هناك اتصالاً وبيانات تنتقل.</p></div>
+    <p class="detail-callout"><b>الفكرة التي يجب أن تخرج بها:</b> TLS يحمي القناة، الشهادة تساعد على التحقق من الخادم، 2FA تساعد على التحقق من المستخدم، والتوقيع الرقمي يساعد على إثبات مصدر البيانات وسلامتها.</p>
+  </div>
+</details>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="view" id="v-quiz" hidden>
+  <div class="vhead">
+    <p class="kicker">Check your understanding</p>
+    <h1>اختبر نفسك</h1>
+    <p class="lead">أسئلة المثال المحلول في الدرس، مع تفسير لكل إجابة.</p>
+  </div>
+  <div class="panel quiz" id="q-root"></div>
+<details class="lesson-detail">
+  <summary>شرح تفصيلي: كيف تستعد للاختبار وتفهم الإجابات</summary>
+  <div class="detail-body">
+    <div><h3>طريقة حل الأسئلة</h3><p>قبل اختيار الإجابة، حدّد المشكلة التي يتحدث عنها السؤال: هل هي سرية البيانات؟ أم هوية الخادم؟ أم هوية المستخدم؟ أم سلامة الرسالة؟ بعد ذلك اربط المشكلة بالتقنية التي تعالجها.</p></div>
+    <div class="detail-grid">
+      <div class="detail-card"><h3>أسئلة المقارنة</h3><p>قارن بين السرعة وطريقة استخدام المفاتيح والغرض الأمني، ولا تخلط بين التشفير المتماثل وغير المتماثل.</p></div>
+      <div class="detail-card"><h3>أسئلة السيناريو</h3><p>اذكر الخطر أولاً، ثم التقنية المناسبة، ثم سبب ملاءمتها والقيود التي قد تبقى.</p></div>
+    </div>
+    <div><h3>نقاط مراجعة سريعة</h3><ul><li>HTTPS = HTTP عبر TLS.</li><li>التشفير المتماثل: المفتاح نفسه للتشفير وفك التشفير.</li><li>المفتاح العام والخاص: زوج مترابط، والخاص لا يُنشر.</li><li>الشهادة: ربط هوية النطاق بمفتاح عام والتحقق من سلسلة الثقة والصلاحية.</li><li>2FA: عاملان من فئتين مختلفتين.</li><li>التوقيع الرقمي: إثبات المصدر وسلامة الرسالة، وليس إخفاءها.</li></ul></div>
+    <p class="detail-callout"><b>نصيحة:</b> حاول الإجابة قبل فتح أي تفسير، ثم اقرأ سبب صحة الإجابة أو خطئها. الأهم أن تستطيع شرح «لماذا» وليس حفظ الاختيار فقط.</p>
+  </div>
+</details>
+</section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+document.documentElement.lang='ar';
+document.documentElement.dir='rtl';
+
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait=ms=>new Promise(r=>setTimeout(r,REDUCED?Math.min(ms,60):ms));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ic=(n,c='')=>`<svg class="i ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const fillIcons=(root=document)=>$$('[data-ic]',root).forEach(e=>{e.innerHTML=ic(e.dataset.ic);});
+
+/* ---------- educational crypto (toy versions) ---------- */
+const AR='ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+const LAT='abcdefghijklmnopqrstuvwxyz';
+function caesar(text,k){
+  return [...text].map(ch=>{
+    let i=AR.indexOf(ch); if(i>=0) return AR[(i+(k%28)+28)%28];
+    const l=ch.toLowerCase(); i=LAT.indexOf(l);
+    if(i>=0){const r=LAT[(i+(k%26)+26)%26]; return ch===l?r:r.toUpperCase();}
+    i='0123456789'.indexOf(ch); if(i>=0) return String((i+(k%10)+10)%10);
+    return ch;
+  }).join('');
+}
+function rng(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s;};}
+function scramble(text,seed){
+  const bytes=[...new TextEncoder().encode(text)];
+  if(!bytes.length) return '—';
+  const r=rng(seed);
+  return bytes.map(b=>((b^(r()>>>24))&255).toString(16).padStart(2,'0')).join('').match(/.{1,4}/g).join(' ');
+}
+const rseed=()=>(Math.random()*4294967296)>>>0;
+const N=3233,E=17,D=2753;
+function modpow(b,e,m){let r=1;b%=m;while(e>0){if(e&1)r=(r*b)%m;b=(b*b)%m;e>>=1;}return r;}
+function unsafeCode(c){return c<32||(c>=127&&c<=160)||c===173||(c>=0x300&&c<=0x36F)||(c>=0x600&&c<=0x61F)||(c>=0x64B&&c<=0x65F)||c===0x670||(c>=0x6D6&&c<=0x6ED);}
+const safeCh=c=>unsafeCode(c)?'▯':String.fromCodePoint(c);
+const rsaEnc=t=>[...t].map(ch=>{const c=ch.codePointAt(0);return c<N?modpow(c,E,N):c;});
+const rsaDec=(arr,ex)=>arr.map(x=>x>=N?String.fromCodePoint(x):safeCh(modpow(x,ex,N))).join('');
+function hsh(t){let h=7;for(const ch of t){h=(h*31+ch.codePointAt(0))%N;}return h<2?h+2:h;}
+
+/* ---------- packet animation ---------- */
+function fly(stage,text,fromEl,toEl,o={}){
+  const p=document.createElement('div');
+  p.className='packet '+(o.cls||'info'); p.textContent=text; p.style.visibility='hidden';
+  stage.appendChild(p);
+  const sr=stage.getBoundingClientRect(),a=fromEl.getBoundingClientRect(),b=toEl.getBoundingClientRect();
+  const pw=p.offsetWidth,ph=p.offsetHeight;
+  const ax=a.left+a.width/2-sr.left-pw/2, ay=a.top+a.height/2-sr.top-ph/2;
+  const dx=(b.left+b.width/2-sr.left-pw/2)-ax, dy=(b.top+b.height/2-sr.top-ph/2)-ay;
+  p.style.left=ax+'px'; p.style.top=ay+'px'; p.style.visibility='';
+  const an=p.animate([
+    {transform:'translate(0,0)',opacity:0},
+    {transform:`translate(${dx*.1}px,${dy*.1}px)`,opacity:1,offset:.1},
+    {transform:`translate(${dx*.9}px,${dy*.9}px)`,opacity:1,offset:.9},
+    {transform:`translate(${dx}px,${dy}px)`,opacity:0}
+  ],{duration:REDUCED?120:(o.dur||1300),easing:'ease-in-out',fill:'forwards'});
+  return an.finished.catch(()=>{}).then(()=>p.remove());
+}
+
+/* ---------- router ---------- */
+const TABS=[['home','الرئيسية'],['https','HTTP وHTTPS'],['symmetric','التشفير المتماثل'],['public-key','المفتاح العام'],['handshake','مصافحة TLS'],['certificate','الشهادة الرقمية'],['auth','المصادقة الثنائية'],['signature','التوقيع الرقمي'],['all-in-one','كل شيء معاً'],['quiz','اختبر نفسك']];
+$('#tabs').innerHTML=TABS.map(([id,l])=>`<a href="#${id}" data-view="${id}">${l}</a>`).join('');
+fillIcons();
+const inited={};
+const INIT={home:initHome,https:initHttps,symmetric:initSym,'public-key':initPub,handshake:initHs,certificate:initCert,auth:initAuth,signature:initSig,'all-in-one':initAll,quiz:initQuiz};
+function route(){
+  let h=''; try{h=decodeURIComponent(location.hash.slice(1));}catch(e){}
+  if(!INIT[h]) h='home';
+  $$('.view').forEach(v=>{v.hidden=v.id!=='v-'+h;});
+  $$('#tabs a').forEach(a=>{
+    const on=a.dataset.view===h;
+    if(on){a.setAttribute('aria-current','page');try{a.scrollIntoView({inline:'center',block:'nearest'});}catch(e){}}
+    else a.removeAttribute('aria-current');
+  });
+  if(!inited[h]){inited[h]=true;INIT[h]();}
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+$('#bigBtn').addEventListener('click',e=>{
+  const on=document.documentElement.classList.toggle('big');
+  e.currentTarget.setAttribute('aria-pressed',String(on));
+});
+// Theme control: explicit light/dark choice, with OS preference as the initial default.
+const themeBtn=$('#themeBtn');
+function currentTheme(){
+  const explicit=document.documentElement.getAttribute('data-theme');
+  if(explicit==='light'||explicit==='dark') return explicit;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+}
+function syncThemeButton(){
+  const dark=currentTheme()==='dark';
+  themeBtn.textContent=dark?'الوضع الفاتح':'الوضع الداكن';
+  themeBtn.setAttribute('aria-pressed',String(!dark));
+  themeBtn.title=dark?'التحويل إلى المظهر الفاتح':'التحويل إلى المظهر الداكن';
+}
+try{
+  const savedTheme=localStorage.getItem('crypto-lab-theme');
+  if(savedTheme==='light'||savedTheme==='dark') document.documentElement.setAttribute('data-theme',savedTheme);
+}catch(e){}
+themeBtn.addEventListener('click',()=>{
+  const next=currentTheme()==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  try{localStorage.setItem('crypto-lab-theme',next);}catch(e){}
+  syncThemeButton();
+});
+syncThemeButton();
+
+
+
+/* ---------- HOME ---------- */
+function initHome(){
+  if(REDUCED) return;
+  const el=$('#demo-line'),lab=$('#demo-label'),icn=$('#demo-ic');
+  const plain='password=12345678'; let enc=false;
+  setInterval(()=>{
+    if($('#v-home').hidden) return;
+    enc=!enc; el.style.opacity=0;
+    setTimeout(()=>{
+      el.className='demo-line mono'+(enc?' cipher':'');
+      el.textContent=enc?scramble(plain,rseed()):plain;
+      lab.textContent=enc?'بعد التشفير: رموز لا معنى لها':'بدون تشفير: مقروءة للجميع';
+      icn.innerHTML=ic(enc?'lock':'unlock');
+      el.style.opacity=1;
+    },250);
+  },2800);
+}
+
+/* ---------- HTTP / HTTPS ---------- */
+function initHttps(){
+  let mode='http',busy=false;
+  const seg=$('#h-seg'),stage=$('#h-stage'),btn=$('#h-send');
+  const bI=$('#h-b .ico'),eI=$('#h-e .ico'),sI=$('#h-s .ico');
+  function reset(){
+    $('#h-eve').textContent='—';$('#h-eve').className='out mono';$('#h-eve-v').innerHTML='';
+    $('#h-srv').textContent='—';$('#h-srv').className='out';$('#h-btag').innerHTML='';
+  }
+  function paint(){
+    const https=mode==='https';
+    $$('button',seg).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===mode)));
+    $('#h-url').className='url '+(https?'safe':'unsafe');
+    $('#h-url').innerHTML=ic(https?'lock':'unlock')+`<span>${mode}://mybank.example/login</span>`;
+    $('#h-badge').className='tag '+(https?'good':'bad');
+    $('#h-badge').textContent=https?'آمن':'غير آمن';
+    reset();
+  }
+  seg.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;mode=b.dataset.v;paint();});
+  btn.addEventListener('click',async()=>{
+    if(busy)return; busy=true; btn.disabled=true; reset();
+    const u=$('#h-user').value||'user',p=$('#h-pass').value||'';
+    const plain=`username=${u}&password=${p}`;
+    let payload=plain,cls='plain';
+    if(mode==='https'){
+      $('#h-btag').innerHTML='<span class="tag info">'+ic('lock')+' تشفير بمفتاح الجلسة</span>';
+      await wait(700);
+      payload=scramble(plain,rseed()); cls='cipher';
+    }
+    await fly(stage,payload,bI,eI,{cls});
+    eI.classList.add('watch');
+    if(mode==='http'){
+      $('#h-eve').innerHTML=esc(`username=${u}&password=`)+`<mark>${esc(p)}</mark>`;
+      $('#h-eve-v').innerHTML='<span class="tag bad">'+ic('cross')+' المتلصص قرأ كلمة المرور بوضوح</span>';
+    }else{
+      $('#h-eve').textContent=payload; $('#h-eve').className='out mono cipher';
+      $('#h-eve-v').innerHTML='<span class="tag good">'+ic('check')+' لا يرى إلا رموزاً عشوائية</span>';
+    }
+    await wait(900);
+    await fly(stage,payload,eI,sI,{cls});
+    eI.classList.remove('watch');
+    const srv=$('#h-srv');
+    if(mode==='http'){srv.textContent=plain;}
+    else{srv.innerHTML='فكّ التشفير بمفتاح الجلسة ← <span class="mono">'+esc(plain)+'</span>';srv.className='out good';}
+    busy=false; btn.disabled=false;
+  });
+  paint();
+}
+
+/* ---------- SYMMETRIC ---------- */
+function initSym(){
+  const msg=$('#s-msg'),k1=$('#s-k1'),k2=$('#s-k2');
+  function up(){
+    const a=+k1.value,b=+k2.value;
+    $('#s-k1v').textContent=a; $('#s-k2v').textContent=b;
+    const c=caesar(msg.value,a);
+    $('#s-cipher').textContent=c||'…';
+    const d=caesar(c,-b),ok=a===b;
+    const out=$('#s-result'); out.textContent=d||'…'; out.className='out '+(ok?'good':'bad');
+    $('#s-status').innerHTML=ok
+      ?'<span class="tag good">'+ic('check')+' المفتاحان متطابقان: عاد النص الأصلي</span>'
+      :'<span class="tag bad">'+ic('cross')+' مفتاح مختلف: نص بلا معنى</span>';
+    const row=[...AR].slice(0,13);
+    $('#s-strip').innerHTML=
+      '<div class="srow"><span class="sl">الأصلي</span>'+row.map(ch=>`<i>${ch}</i>`).join('')+'</div>'+
+      '<div class="srow"><span class="sl">المشفّر</span>'+row.map((ch,i)=>`<i class="sh">${AR[(i+a)%28]}</i>`).join('')+'</div>';
+  }
+  [msg,k1,k2].forEach(e=>e.addEventListener('input',up));
+  up();
+}
+
+/* ---------- PUBLIC KEY ---------- */
+function initPub(){
+  const msg=$('#p-msg'); let cipher=null;
+  const priv=$('#p-priv');
+  const reveal=()=>priv.classList.toggle('blur');
+  priv.addEventListener('click',reveal);
+  priv.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();reveal();}});
+  function clearOut(){
+    $('#p-eve-o').textContent='—';$('#p-eve-o').className='out';
+    $('#p-dec-o').textContent='—';$('#p-dec-o').className='out';
+  }
+  function resetAll(){
+    cipher=null; $('#p-cipher').textContent='—'; clearOut();
+    $('#p-eve').disabled=true; $('#p-dec').disabled=true;
+    $('#p-math-t').textContent='شفّر رسالة أولاً.';
+  }
+  $('#p-enc').addEventListener('click',()=>{
+    if(!msg.value.trim()) return;
+    cipher=rsaEnc(msg.value);
+    $('#p-cipher').textContent=cipher.join(' ');
+    clearOut();
+    $('#p-eve').disabled=false; $('#p-dec').disabled=false;
+    const ch=[...msg.value][0],c=ch.codePointAt(0);
+    $('#p-math-t').textContent=c<N
+      ?`الحرف «${ch}» رمزه ${c}\nالتشفير: ${c}^17 mod 3233 = ${cipher[0]}\nفكّ التشفير: ${cipher[0]}^2753 mod 3233 = ${modpow(cipher[0],D,N)}`
+      :'هذا الحرف خارج نطاق المثال التعليمي، لذا يبقى كما هو.';
+    $('#p-math-t').style.whiteSpace='pre-line';
+  });
+  msg.addEventListener('input',resetAll);
+  $('#p-eve').addEventListener('click',()=>{
+    if(!cipher) return;
+    const o=$('#p-eve-o'); o.textContent=rsaDec(cipher,E); o.className='out bad';
+  });
+  $('#p-dec').addEventListener('click',()=>{
+    if(!cipher) return;
+    const o=$('#p-dec-o'); o.textContent=rsaDec(cipher,D); o.className='out good';
+  });
+}
+
+/* ---------- TLS HANDSHAKE ---------- */
+function initHs(){
+  const stage=$('#hs-stage'),cI=$('#hs-c .ico'),sI=$('#hs-s .ico');
+  const HS=[
+    {ph:0,k:'fly',from:'c',pk:'Hello',cls:'info',t:'المتصفح يطلب من الموقع اتصالاً آمناً.'},
+    {ph:0,k:'fly',from:'s',pk:'الشهادة + المفتاح العام',cls:'ok',t:'الخادم يرسل شهادته الرقمية ومعها مفتاحه العام ليثبت هويته.'},
+    {ph:0,k:'chk',t:'المتصفح يفحص الشهادة: صلاحيتها، وسلسلة الثقة، وملاءمتها لاسم الموقع.'},
+    {ph:1,k:'fly',from:'c',pk:'TLS 1.3 · AES-GCM',cls:'info',t:'يتفاوض الطرفان على إصدار TLS ومجموعة التشفير التي سيعتمدانها.'},
+    {ph:1,k:'fly',from:'c',pk:'سرّ مشترك (مشفّر)',cls:'cipher',t:'المتصفح يرسل سراً مشتركاً مشفّراً بالمفتاح العام للموقع. وحده الخادم يملك المفتاح الخاص لفكّه.'},
+    {ph:1,k:'keys',t:'كل طرف يشتقّ من السر نفسه مفاتيح الجلسة. لم يُرسَل مفتاح الجلسة عبر الشبكة أبداً.'},
+    {ph:2,k:'fly',from:'c',pk:scramble('GET /account',rseed()),cls:'cipher',t:'تبدأ مرحلة تبادل البيانات. تُحمى الآن بالتشفير المتماثل بمفاتيح الجلسة.'},
+    {ph:2,k:'fly',from:'s',pk:scramble('balance=1520',rseed()),cls:'cipher',t:'الرد أيضاً مشفّر. أصبح الاتصال آمناً وسريعاً.'}
+  ];
+  let idx=-1,busy=false,auto=false;
+  const nextBtn=$('#hs-next'),autoBtn=$('#hs-auto');
+  const paintPhases=ph=>$$('#hs-phases li').forEach((li,i)=>{li.classList.toggle('cur',i===ph);li.classList.toggle('done',i<ph);});
+  const paintDots=()=>$$('#hs-dots i').forEach((d,i)=>d.classList.toggle('on',i<=idx));
+  const resetChecks=()=>$$('#hs-checks li').forEach(li=>{li.className='';li.querySelector('.st').innerHTML='';});
+  async function next(){
+    if(busy||idx>=HS.length-1) return;
+    busy=true; idx++;
+    const s=HS[idx];
+    $('#hs-step').textContent=`الخطوة ${idx+1} من ${HS.length}`;
+    $('#hs-text').textContent=s.t;
+    paintPhases(s.ph); paintDots();
+    $('#hs-checks').hidden=s.k!=='chk';
+    if(s.k==='fly'){
+      const fromC=s.from==='c';
+      await fly(stage,s.pk,fromC?cI:sI,fromC?sI:cI,{cls:s.cls});
+    }else if(s.k==='chk'){
+      cI.classList.add('on'); resetChecks();
+      for(const li of $$('#hs-checks li')){
+        li.className='run'; li.querySelector('.st').innerHTML='<span class="sp"></span>';
+        await wait(550);
+        li.className='pass'; li.querySelector('.st').innerHTML=ic('check');
+      }
+      $('#hs-ctag').innerHTML='<span class="tag good">'+ic('check')+' الموقع موثوق</span>';
+    }else if(s.k==='keys'){
+      const tag='<span class="tag info">'+ic('key')+' مفتاح الجلسة</span>';
+      $('#hs-ctag').innerHTML=tag; $('#hs-stag').innerHTML=tag;
+      cI.classList.add('on'); sI.classList.add('on');
+    }
+    if(idx===HS.length-1){paintPhases(3);nextBtn.textContent='اكتملت المصافحة';}
+    busy=false;
+  }
+  async function runAuto(){
+    auto=true; autoBtn.textContent='إيقاف';
+    while(auto&&idx<HS.length-1&&!$('#v-handshake').hidden){await next();await wait(900);}
+    auto=false; autoBtn.textContent='تشغيل تلقائي';
+  }
+  function reset(){
+    auto=false; idx=-1; busy=false;
+    $('#hs-step').textContent='اضغط للبدء'; $('#hs-text').textContent='ستمرّ العملية بثماني رسائل وخطوات.';
+    $('#hs-checks').hidden=true; resetChecks();
+    $('#hs-ctag').innerHTML=''; $('#hs-stag').innerHTML='';
+    cI.classList.remove('on'); sI.classList.remove('on');
+    paintPhases(-1); paintDots(); nextBtn.textContent='الخطوة التالية'; autoBtn.textContent='تشغيل تلقائي';
+  }
+  nextBtn.addEventListener('click',next);
+  autoBtn.addEventListener('click',()=>{if(auto){auto=false;}else{runAuto();}});
+  $('#hs-reset').addEventListener('click',reset);
+  reset();
+}
+
+/* ---------- CERTIFICATE ---------- */
+function initCert(){
+  const WANT='mybank.example';
+  const OKI='CertTrust (جهة موثوقة)';
+  const SC=[
+    {label:'موقع سليم',url:'mybank.example',subj:'mybank.example',issuer:OKI,trusted:true,to:'2035-03-01'},
+    {label:'اسم نطاق مختلف',url:'mybank.example',subj:'other-shop.example',issuer:OKI,trusted:true,to:'2035-03-01'},
+    {label:'شهادة منتهية',url:'mybank.example',subj:'mybank.example',issuer:OKI,trusted:true,to:'2025-01-10'},
+    {label:'جهة غير موثوقة',url:'mybank.example',subj:'mybank.example',issuer:'موقّعة ذاتياً (جهة مجهولة)',trusted:false,to:'2035-03-01'},
+    {label:'موقع احتيالي بشهادة صحيحة',url:'mybank-login.example',subj:'mybank-login.example',issuer:OKI,trusted:true,to:'2035-03-01'}
+  ];
+  const list=$('#c-list'); let token=0;
+  list.innerHTML=SC.map((s,i)=>`<button class="btn" type="button" data-i="${i}" aria-pressed="false">${s.label}</button>`).join('');
+  const rows=()=>$$('#c-checks li');
+  async function run(i){
+    const my=++token,s=SC[i];
+    $$('button',list).forEach((b,j)=>b.setAttribute('aria-pressed',String(j===i)));
+    const expired=new Date(s.to)<new Date();
+    const res=[s.trusted,!expired,s.subj===s.url];
+    $('#c-note').innerHTML='';
+    $('#c-url').className='url';
+    $('#c-url').innerHTML=ic('lock')+`<span>https://${s.url}</span>`;
+    $('#c-page').innerHTML='<p class="muted">جارٍ الاتصال وطلب الشهادة…</p>';
+    $('#c-cert').innerHTML=
+      `<h4>${ic('cert')} الشهادة الرقمية</h4><dl>`+
+      `<dt>صادرة إلى</dt><dd class="mono">${esc(s.subj)}</dd>`+
+      `<dt>صادرة من</dt><dd>${esc(s.issuer)}</dd>`+
+      `<dt>صالحة حتى</dt><dd class="mono">${s.to}</dd>`+
+      `<dt>المفتاح العام</dt><dd class="mono">04 a7 3c 9e …</dd></dl>`+
+      `<p class="sigline">موقّعة رقمياً من الجهة المصدِّرة</p>`;
+    rows().forEach(li=>{li.className='';li.querySelector('.st').innerHTML='';});
+    await wait(500);
+    for(let k=0;k<3;k++){
+      if(my!==token) return;
+      const li=rows()[k];
+      li.className='run'; li.querySelector('.st').innerHTML='<span class="sp"></span>';
+      await wait(650);
+      if(my!==token) return;
+      li.className=res[k]?'pass':'fail';
+      li.querySelector('.st').innerHTML=ic(res[k]?'check':'cross');
+    }
+    const all=res.every(Boolean);
+    if(!all){
+      const why=[];
+      if(!res[0]) why.push('الجهة التي أصدرت الشهادة غير موثوقة');
+      if(!res[1]) why.push('انتهت الشهادة بتاريخ '+s.to);
+      if(!res[2]) why.push(`الشهادة صادرة إلى ${s.subj} وليس إلى ${s.url}`);
+      $('#c-url').className='url unsafe';
+      $('#c-url').innerHTML=ic('warn')+`<span>https://${s.url}</span>`;
+      $('#c-page').innerHTML=`<div class="warnpage">${ic('warn')}<b>اتصالك ليس خاصاً</b><ul>${why.map(w=>`<li>${esc(w)}</li>`).join('')}</ul><span class="muted">المتصفح أوقف الاتصال لحمايتك.</span></div>`;
+    }else if(s.url===WANT){
+      $('#c-url').className='url safe';
+      $('#c-page').innerHTML=`<div class="okpage"><b>بنك ماي بانك</b><span>مرحباً بك. تم التحقق من هوية الموقع.</span><span class="tag good">${ic('check')} الاتصال مشفّر والموقع هو المقصود</span></div>`;
+    }else{
+      $('#c-url').className='url safe';
+      $('#c-page').innerHTML=`<div class="fakepage"><b>بنك ماي بانك — تسجيل الدخول</b><span>أدخل بياناتك للمتابعة.</span></div>`;
+      $('#c-note').innerHTML=`<div class="result bad"><b>${ic('warn')} الفحوص الثلاثة نجحت، لكن الموقع ليس موقع بنكك</b><p>العنوان <span class="mono">${esc(s.url)}</span> يختلف عن <span class="mono">${WANT}</span>. الشهادة صحيحة لهذا النطاق المقلَّد، والاتصال مشفّر، لكن من يديره قد يكون محتالاً. القفل يثبت التشفير وهوية النطاق، ولا يثبت أن الموقع صادق النية.</p></div>`;
+    }
+  }
+  list.addEventListener('click',e=>{const b=e.target.closest('button');if(b)run(+b.dataset.i);});
+  run(0);
+}
+
+/* ---------- AUTH ---------- */
+function initAuth(){
+  const CAT={know:'المعرفة',poss:'الحيازة',inh:'السمات الحيوية'};
+  const F={
+    pw:{cat:'know',n:'كلمة المرور'},
+    secq:{cat:'know',n:'إجابة سؤال سري'},
+    otp:{cat:'poss',n:'كلمة المرور لمرة واحدة'},
+    sms:{cat:'poss',n:'رمز عبر رسالة SMS'},
+    card:{cat:'poss',n:'بطاقة الدخول'},
+    cvv:{cat:'poss',n:'التحقق من بطاقة الائتمان'},
+    fp:{cat:'inh',n:'بصمة الإصبع'}
+  };
+  const WHY={otp:'كلمة المرور لمرة واحدة تظهر على هاتفك أنت.',sms:'رمز SMS يصل إلى هاتفك أنت.',fp:'المخترق لا يملك بصمة إصبعك.',cvv:'المخترق لا يملك البطاقة الفعلية أمامه.',card:'المخترق لا يملك البطاقة.',pw:'',secq:''};
+  const SV=[
+    ['الخدمات المصرفية عبر الإنترنت',['pw','otp']],
+    ['تسجيل الدخول لوسائل التواصل',['pw','sms']],
+    ['الدخول إلى مبنى مؤمن',['card','fp']],
+    ['التسوق الإلكتروني',['pw','cvv']],
+    ['كلمة مرور + سؤال سري (للمقارنة)',['pw','secq']]
+  ];
+  let si=0,tfa=true,atk=false,run=0,code='';
+  const svcBox=$('#a-svc'),body=$('#a-body'),phone=$('#a-phone');
+  svcBox.innerHTML=SV.map((s,i)=>`<button class="btn" type="button" data-i="${i}" aria-pressed="false">${s[0]}</button>`).join('');
+  const facs=()=>tfa?SV[si][1]:[SV[si][1][0]];
+  function idle(){
+    run++; code='';
+    phone.innerHTML='<span class="lbl">هاتفك</span><p class="muted" style="margin-top:8px">لا توجد رسائل</p>';
+    $$('button',svcBox).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===si)));
+    const f=facs();
+    let verdict='<span class="tag bad">'+ic('cross')+' عامل واحد فقط</span>';
+    if(f.length===2){
+      const same=F[f[0]].cat===F[f[1]].cat;
+      verdict=same?'<span class="tag warn">'+ic('warn')+' فئة واحدة: ليست 2FA حقيقية</span>':'<span class="tag good">'+ic('check')+' فئتان مختلفتان: 2FA</span>';
+    }
+    $('#a-req').innerHTML=f.map((id,i)=>`<span class="chip">${i+1}. ${F[id].n} <em>${CAT[F[id].cat]}</em></span>`).join('')+verdict;
+    body.innerHTML=`<button class="btn primary" type="button" id="a-start">${atk?'ابدأ الهجوم':'تسجيل الدخول'}</button>`;
+    $('#a-start').addEventListener('click',start);
+  }
+  function result(ok,html){
+    const real=!atk;
+    const good=real?ok:!ok;
+    const title=real?(ok?'تم تسجيل دخولك':'فشل تسجيل الدخول'):(ok?'تم الاختراق':'تم صدّ المخترق');
+    body.innerHTML=`<div class="result ${good?'good':'bad'}"><b>${ic(good?'shield':'warn')} ${title}</b><p>${html}</p></div><div><button class="btn" type="button" id="a-again">أعد التجربة</button></div>`;
+    $('#a-again').addEventListener('click',idle);
+  }
+  async function start(){
+    const my=++run,f=facs();
+    if(atk){
+      body.innerHTML=`<p>المخترق يستخدم <b>${F[f[0]].n}</b> المسروق…</p>`;
+      await wait(1000); if(my!==run) return;
+      if(f.length===1){result(true,'الحساب محمي بعامل واحد فقط، وقد سُرق. لا يوجد ما يوقف المخترق.');return;}
+      body.innerHTML=`<p>المخترق يواجه العامل الثاني: <b>${F[f[1]].n}</b>…</p>`;
+      await wait(1200); if(my!==run) return;
+      if(F[f[1]].cat===F[f[0]].cat){
+        result(true,`العاملان من فئة ${CAT[F[f[0]].cat]} نفسها. المعلومات التي سُرقت مرة تكفي لسرقة الثاني، فلم يحمِ العامل الثاني شيئاً.`);
+      }else{
+        result(false,`${WHY[f[1]]} العامل الثاني من فئة ${CAT[F[f[1]].cat]} مختلفة عن ${CAT[F[f[0]].cat]}، فلم تكفِ سرقة الأول.`);
+      }
+      return;
+    }
+    let i=0;
+    const go=()=>{
+      if(my!==run) return;
+      if(i>=f.length){result(true,`دخلت باستخدام ${f.length===1?'عامل واحد':'عاملين'}: `+f.map(id=>F[id].n).join(' + ')+'.');return;}
+      drawFactor(f[i],i,()=>{i++;go();});
+    };
+    go();
+  }
+  function bad(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+  function drawFactor(id,idx,pass){
+    const f=F[id];
+    const head=`<p class="lbl">العامل ${idx+1}: ${f.n} <span class="tag info">${CAT[f.cat]}</span></p>`;
+    if(id==='pw'||id==='secq'){
+      const ans=id==='pw'?'Pass@123':'النور';
+      const label=id==='pw'?'أدخل كلمة المرور':'ما اسم مدرستك الابتدائية؟';
+      body.innerHTML=head+`<label class="lbl" for="a-in">${label}</label><input class="inp" id="a-in" autocomplete="off"><p class="muted">للتجربة، الإجابة الصحيحة: <b class="mono">${ans}</b></p><div><button class="btn primary" type="button" id="a-ok">تأكيد</button></div><div id="a-err"></div>`;
+      $('#a-ok').addEventListener('click',()=>{
+        const inp=$('#a-in');
+        if(inp.value.trim()===ans) pass();
+        else{bad(inp);$('#a-err').innerHTML='<span class="tag bad">إجابة غير صحيحة</span>';}
+      });
+    }else if(id==='otp'||id==='sms'){
+      body.innerHTML=head+`<div><button class="btn" type="button" id="a-send">أرسل الرمز إلى هاتفي</button></div><div id="a-cw" hidden class="stack"><label class="lbl" for="a-in">اكتب الرمز الظاهر على الهاتف</label><input class="inp mono" id="a-in" inputmode="numeric" maxlength="6" autocomplete="off"><div><button class="btn primary" type="button" id="a-ok">تحقق</button></div></div><div id="a-err"></div>`;
+      $('#a-send').addEventListener('click',()=>{
+        code=String(Math.floor(100000+Math.random()*900000));
+        phone.innerHTML=`<span class="lbl">${id==='otp'?'تطبيق البنك':'رسائل SMS'}</span><div class="msg">${id==='otp'?'كلمة المرور لمرة واحدة':'رمز التحقق'}: <b class="mono">${code}</b><br><span class="muted">لا تشاركه مع أحد.</span></div>`;
+        $('#a-cw').hidden=false; $('#a-in').focus();
+      });
+      $('#a-ok').addEventListener('click',()=>{
+        const inp=$('#a-in');
+        if(inp.value.trim()===code&&code) pass();
+        else{bad(inp);$('#a-err').innerHTML='<span class="tag bad">الرمز غير صحيح</span>';}
+      });
+    }else if(id==='card'){
+      body.innerHTML=head+`<div class="ccard"><span>ACCESS CARD</span><span>ID 0042 · BUILDING A</span></div><div><button class="btn primary" type="button" id="a-ok">مرّر بطاقة الدخول</button></div>`;
+      $('#a-ok').addEventListener('click',async e=>{e.currentTarget.disabled=true;await wait(600);pass();});
+    }else if(id==='fp'){
+      body.innerHTML=head+`<button class="fpad" type="button" id="a-fp" aria-label="ضع إصبعك على القارئ">${ic('finger')}</button><p class="muted" style="text-align:center">اضغط على القارئ لمسح البصمة</p>`;
+      $('#a-fp').addEventListener('click',async e=>{const b=e.currentTarget;b.classList.add('scan');await wait(1000);pass();});
+    }else if(id==='cvv'){
+      body.innerHTML=head+`<div class="ccard"><span>•••• •••• •••• 4417</span><span>CVV: <b>482</b> (ظهر البطاقة)</span></div><label class="lbl" for="a-in">أدخل رمز CVV من البطاقة التي بيدك</label><input class="inp mono" id="a-in" inputmode="numeric" maxlength="3" autocomplete="off"><div><button class="btn primary" type="button" id="a-ok">تحقق</button></div><div id="a-err"></div>`;
+      $('#a-ok').addEventListener('click',()=>{
+        const inp=$('#a-in');
+        if(inp.value.trim()==='482') pass();
+        else{bad(inp);$('#a-err').innerHTML='<span class="tag bad">الرمز غير صحيح</span>';}
+      });
+    }
+  }
+  svcBox.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;si=+b.dataset.i;idle();});
+  $('#a-tfa').addEventListener('change',e=>{tfa=e.target.checked;idle();});
+  $('#a-atk').addEventListener('change',e=>{atk=e.target.checked;idle();});
+  idle();
+}
+
+/* ---------- SIGNATURE ---------- */
+function initSig(){
+  const m=$('#g-msg'),rm=$('#g-rmsg');
+  let signed=null,rsig=null;
+  const dis=v=>['g-tamper','g-forge','g-reset','g-verify'].forEach(id=>{$('#'+id).disabled=v;});
+  function clearRes(){$('#g-res').innerHTML='';}
+  $('#g-sign').addEventListener('click',()=>{
+    const msg=m.value; if(!msg.trim()) return;
+    const h=hsh(msg),sig=modpow(h,D,N);
+    signed={msg,h,sig}; rsig=sig;
+    $('#g-h').textContent=h; $('#g-sig').textContent=sig;
+    rm.disabled=false; rm.value=msg; $('#g-rsig').textContent=sig;
+    dis(false); clearRes();
+  });
+  m.addEventListener('input',()=>{
+    signed=null; rsig=null; dis(true); rm.value=''; rm.disabled=true;
+    $('#g-h').textContent='—'; $('#g-sig').textContent='—'; $('#g-rsig').textContent='—';
+    $('#g-res').innerHTML='<span class="tag warn">تغيّرت الرسالة، وقّعها من جديد.</span>';
+  });
+  rm.addEventListener('input',clearRes);
+  $('#g-tamper').addEventListener('click',()=>{
+    let v=rm.value;
+    v=/\d+/.test(v)?v.replace(/\d+/,d=>d==='900'?'9000':'900'):v+' !';
+    while(hsh(v)===signed.h) v+='!';
+    rm.value=v; clearRes();
+  });
+  $('#g-forge').addEventListener('click',()=>{
+    let s;
+    do{s=100+Math.floor(Math.random()*2900);}while(s===signed.sig||modpow(s,E,N)===signed.h);
+    rsig=s; $('#g-rsig').textContent=s; clearRes();
+  });
+  $('#g-reset').addEventListener('click',()=>{
+    rm.value=signed.msg; rsig=signed.sig; $('#g-rsig').textContent=rsig; clearRes();
+  });
+  $('#g-verify').addEventListener('click',()=>{
+    const calc=hsh(rm.value),extracted=modpow(rsig,E,N),ok=calc===extracted;
+    $('#g-res').innerHTML=
+      `<div class="result ${ok?'good':'bad'}"><b>${ic(ok?'check':'cross')} ${ok?'التوقيع سليم':'فشل التحقق'}</b>`+
+      `<div class="numbox"><span>بصمة الرسالة التي وصلت</span><b>${calc}</b></div>`+
+      `<div class="numbox"><span>البصمة المستخرجة من التوقيع (بالمفتاح العام)</span><b>${extracted}</b></div>`+
+      `<p>${ok?'الرقمان متطابقان: الرسالة لم تتغيّر ومصدرها صاحب المفتاح الخاص.':'الرقمان مختلفان: إما أن الرسالة تغيّرت بعد التوقيع، أو أن التوقيع لم يصدر عن صاحب المفتاح الخاص.'}</p></div>`;
+  });
+  dis(true);
+}
+
+/* ---------- ALL IN ONE ---------- */
+function initAll(){
+  const order='سماعات رأس|1|شارع المدرسة 12';
+  const osig=modpow(hsh(order),D,N);
+  const ST=[
+    {n:'فتح الموقع',b:'HTTPS/TLS',d:'يحمي الاتصال والبيانات',
+     page:()=>`<p><b>متجر الأجهزة</b></p><p class="muted">سماعات رأس · لوحات مفاتيح · شواحن</p><span class="tag good">${ic('lock')} اتصال مشفّر عبر TLS</span>`,
+     eve:()=>`<span class="mono">${scramble('GET /home',rseed())}</span><br><span class="muted">اتصال مشفّر: محتوى الصفحة غير مقروء.</span>`},
+    {n:'التحقق من الموقع',b:'الشهادة الرقمية',d:'تساعد المتصفح على التحقق من هوية الموقع',
+     page:()=>`<ul class="checks"><li class="pass"><span class="st">${ic('check')}</span>جهة الإصدار موثوقة</li><li class="pass"><span class="st">${ic('check')}</span>الشهادة سارية</li><li class="pass"><span class="st">${ic('check')}</span>اسم النطاق shop.example مطابق</li></ul><p class="muted">الاتصال مع المتجر الحقيقي، وليس موقعاً ينتحل اسمه.</p>`,
+     eve:()=>`الشهادة علنية ولا تحتوي أسراراً، وظيفتها إثبات الهوية فقط.`},
+    {n:'تسجيل الدخول',b:'2FA',d:'يحمي حسابك باستخدام عاملين مختلفين',
+     page:()=>`<ul class="checks"><li class="pass"><span class="st">${ic('check')}</span>كلمة المرور <em class="tag info">معرفة</em></li><li class="pass"><span class="st">${ic('check')}</span>رمز SMS من هاتفك <em class="tag info">حيازة</em></li></ul><p class="muted">حتى لو سُرّبت كلمة المرور، يبقى الهاتف في يدك.</p>`,
+     eve:()=>`<span class="mono">${scramble('user=ahmed&otp=482913',rseed())}</span><br><span class="muted">بيانات الدخول مشفّرة أثناء النقل، وحتى لو عُرفت كلمة المرور يبقى العامل الثاني.</span>`},
+    {n:'إرسال الطلب',b:'TLS أثناء نقل الطلب',d:'يحمي سرية البيانات وسلامتها أثناء النقل',
+     page:()=>`<div class="orderrow"><span>المنتج</span><b>سماعات رأس</b></div><div class="orderrow"><span>الكمية</span><b>1</b></div><div class="orderrow"><span>العنوان</span><b>شارع المدرسة، المبنى 12</b></div><span class="tag good">${ic('lock')} الطلب يُنقل مشفّراً</span>`,
+     eve:()=>`<span class="mono">${scramble('item=headphones&qty=1&addr=School St 12',rseed())}</span><br><span class="muted">لا يعرف المتلصص المنتج ولا العنوان.</span>`},
+    {n:'توقيع الطلب',b:'التوقيع الرقمي عند الحاجة',d:'يساعد على إثبات سلامة البيانات وعدم تغييرها بعد توقيعها',
+     page:()=>`<p>الطلب موقّع رقمياً قبل الإرسال.</p><div class="numbox"><span>التوقيع</span><b>${osig}</b></div><span class="tag good">${ic('check')} المتجر تحقق: الطلب لم يتغيّر</span>`,
+     eve:()=>`لو غيّر أحدهم الكمية أو العنوان أثناء الطريق، سيفشل التحقق من التوقيع.`}
+  ];
+  let cur=0;
+  $('#o-steps').innerHTML=ST.map((s,i)=>`<button class="btn" type="button" data-i="${i}"><span class="num">${i+1}</span>${s.n}</button>`).join('');
+  $('#o-badges').innerHTML=ST.map((s,i)=>`<li data-i="${i}"><span class="num">${i+1}</span><div><b>${s.b}</b><span class="d">${s.d}</span></div></li>`).join('');
+  function show(i){
+    cur=Math.max(0,Math.min(ST.length-1,i));
+    const s=ST[cur];
+    $$('#o-steps button').forEach((b,j)=>b.setAttribute('aria-pressed',String(j===cur)));
+    $$('#o-badges li').forEach((li,j)=>li.classList.toggle('lit',j<=cur));
+    $('#o-url').innerHTML=ic('lock')+'<span>https://shop.example</span>';
+    $('#o-page').innerHTML=s.page();
+    $('#o-eve').innerHTML=s.eve();
+    $('#o-prev').disabled=cur===0;
+    $('#o-next').disabled=cur===ST.length-1;
+  }
+  $('#o-steps').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i);});
+  $('#o-prev').addEventListener('click',()=>show(cur-1));
+  $('#o-next').addEventListener('click',()=>show(cur+1));
+  show(0);
+}
+
+/* ---------- QUIZ ---------- */
+function initQuiz(){
+  const TF=[
+    ['يستخدم اتصال HTTPS كلاً من التشفير بالمفتاح العام والتشفير المتماثل.',true,'المفتاح العام يعمل في المصافحة (التحقق والاتفاق على مفاتيح الجلسة)، والتشفير المتماثل يحمي البيانات بعد ذلك.'],
+    ['يقوم HTTPS بتشفير جميع البيانات باستخدام التشفير بالمفتاح العام.',false,'البيانات تُحمى بالتشفير المتماثل لأنه أسرع وأكفأ. المفتاح العام يُستخدم في المصافحة.'],
+    ['المصادقة الثنائية (2FA) تستخدم عاملين مستقلين لإثبات الهوية.',true,'هذا هو تعريفها: عاملان مستقلان من فئتين مختلفتين.'],
+    ['من أمثلة المصادقة الثنائية (2FA) تعيين كلمتي مرور.',false,'كلمتا المرور من فئة واحدة هي المعرفة، فلا تُعدّان عاملين مستقلين.']
+  ];
+  const MT=[
+    ['أريد منع قراءة محتوى الاتصال من قبل أطراف ثالثة.','التشفير'],
+    ['أريد التحقق من أن رسالة موقّعة لم تتغيّر وأنها صدرت من مصدرها المزعوم.','التوقيع الرقمي'],
+    ['أريد التحقق من أن الطرف المقابل في الاتصال حقيقي.','الشهادة الرقمية']
+  ];
+  const OPT=['التشفير','التوقيع الرقمي','الشهادة الرقمية'];
+  const total=TF.length+MT.length; let got=0,done=0;
+  const root=$('#q-root');
+  root.innerHTML=
+    '<h3>١. ضع علامة صح أو خطأ</h3>'+
+    TF.map((q,i)=>`<div class="q" data-t="tf" data-i="${i}"><p>${esc(q[0])}</p><div class="opts"><button class="btn" type="button" data-a="1">${ic('check')} صح</button><button class="btn" type="button" data-a="0">${ic('cross')} خطأ</button></div><p class="fb" aria-live="polite"></p></div>`).join('')+
+    '<h3>٢. طابق كل حاجة بأنسب تقنية أمان</h3>'+
+    MT.map((q,i)=>`<div class="q" data-t="mt" data-i="${i}"><p>${esc(q[0])}</p><div class="opts">${OPT.map(o=>`<button class="btn" type="button" data-a="${esc(o)}">${o}</button>`).join('')}</div><p class="fb" aria-live="polite"></p></div>`).join('')+
+    `<span class="tag info score" id="q-score">النتيجة: 0 من ${total}</span>`+
+    '<h3>٣. توقف وفكّر</h3>'+
+    '<p>إذا سُرّبت كلمة المرور، لماذا يمكن لعامل ثانٍ يُرسَل إلى الهاتف أن يُبقي الحساب محمياً؟</p>'+
+    '<details><summary>اعرض الإجابة</summary><p>لأن المخترق يعرف كلمة المرور فقط (فئة المعرفة) ولا يملك الهاتف (فئة الحيازة). العاملان مستقلان ومن فئتين مختلفتين، فسرقة أحدهما لا تعطيه الآخر.</p></details>'+
+    '<h3>٤. سؤال على نمط الامتحان (٦ درجات)</h3>'+
+    '<p>اشرح لماذا يستخدم TLS آليات المفتاح العام للمصادقة والاتفاق على مفاتيح الجلسة، ثم يستخدم التشفير المتماثل لحماية البيانات. استعن بـ: الأمان، والكفاءة.</p>'+
+    '<details><summary>اعرض إجابة مقترحة</summary><ul><li>الطرفان لا يملكان سراً مشتركاً مسبقاً، والمفتاح العام يسمح بالتحقق من هوية الخادم (الشهادة) وبالاتفاق على مفاتيح الجلسة عبر شبكة مكشوفة. هذا يحقق <b>الأمان</b>.</li><li>لكن عمليات المفتاح العام بطيئة ومكلفة حسابياً، فلا تناسب نقل كميات كبيرة من البيانات.</li><li>بعد الاتفاق على مفاتيح الجلسة يُستخدم التشفير المتماثل لأنه سريع وكفء، ويحمي سرية البيانات أثناء الانتقال. هذا يحقق <b>الكفاءة</b>.</li><li>الجمع بين الآليتين يعطي اتصالاً آمناً وسريعاً في آن واحد.</li></ul></details>';
+  const score=$('#q-score');
+  root.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-a]'); if(!b) return;
+    const q=b.closest('.q'); if(q.dataset.done) return;
+    q.dataset.done='1';
+    const i=+q.dataset.i; let ok,fb;
+    if(q.dataset.t==='tf'){
+      ok=(b.dataset.a==='1')===TF[i][1];
+      fb=(ok?'إجابة صحيحة. ':'إجابة غير صحيحة. ')+TF[i][2];
+    }else{
+      ok=b.dataset.a===MT[i][1];
+      fb=ok?'إجابة صحيحة.':`إجابة غير صحيحة. الأنسب هنا: ${MT[i][1]}.`;
+    }
+    q.classList.add(ok?'done-good':'done-bad');
+    $('.fb',q).textContent=fb;
+    $$('button',q).forEach(x=>{x.disabled=true;});
+    b.setAttribute('aria-pressed','true');
+    done++; if(ok) got++;
+    score.textContent=`النتيجة: ${got} من ${total}`+(done===total?' · انتهيت':'');
+  });
+}
+
+route();
+})();
+</script>
+
+<style>
+.simple{border-inline-start:5px solid var(--good);margin-bottom:20px}
+.simple h3{font-family:var(--f-display);color:var(--good)}
+.simple .an{padding:10px 12px;border-radius:10px;background:var(--good-soft);color:var(--fg)}
+.simple ol{margin:0;padding-inline-start:1.3rem;display:grid;gap:6px}
+.simple .mist{padding:9px 12px;border-radius:10px;background:var(--warn-soft);color:var(--fg)}
+.xsim{margin-top:20px}.xsim h3{font-family:var(--f-display)}
+.hop{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:8px;align-items:center}
+.bub{padding:8px 12px;border-radius:12px;max-width:85%;margin-block:4px}
+.bub.c{background:var(--accent-soft);margin-inline-end:auto}.bub.s{background:var(--cipher-soft);margin-inline-start:auto}
+.lk{display:flex;gap:6px;flex-wrap:wrap}.lk .btn[aria-pressed=true]{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.dif{background:var(--bad);color:var(--bad-ink);border-radius:3px}
+</style>
+<script>
+(function(){'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const AR='ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+const cz=(t,k)=>[...t].map(ch=>{let i=AR.indexOf(ch);if(i>=0)return AR[(i+k%28+28)%28];i='abcdefghijklmnopqrstuvwxyz'.indexOf(ch.toLowerCase());if(i>=0){const r='abcdefghijklmnopqrstuvwxyz'[(i+k%26+26)%26];return ch===ch.toLowerCase()?r:r.toUpperCase();}return ch}).join('');
+const hexs=(t,s)=>{let h=s>>>0;return [...new TextEncoder().encode(t)].map(b=>{h=(Math.imul(h,1664525)+1013904223)>>>0;return((b^(h>>>24))&255).toString(16).padStart(2,'0')}).join('')||'—'};
+const N=3233,E=17,D=2753,mp=(b,e,m)=>{let r=1;b%=m;while(e>0){if(e&1)r=r*b%m;b=b*b%m;e>>=1}return r};
+const SIMPLE={
+https:{an:'HTTP كأنك ترسل <b>بطاقة بريدية</b>: كل من يحملها في الطريق يقرأها. HTTPS كأنك تضع الرسالة في <b>ظرف مقفل</b> لا يفتحه إلا المستلم.',st:['تكتب كلمة المرور في الموقع.','في HTTP تنتقل كما هي نصاً واضحاً عبر الواي فاي ومزود الإنترنت وغيرهم.','في HTTPS يحوّلها المتصفح إلى رموز لا معنى لها قبل خروجها.','الخادم وحده يعرف كيف يعيدها إلى شكلها الأصلي.'],m:'القفل في المتصفح يعني أن الاتصال مشفّر، لكنه لا يعني أن الموقع نفسه موثوق أو غير احتيالي.'},
+symmetric:{an:'مفتاح الشقة: <b>نفس المفتاح</b> يقفل الباب ويفتحه. الصعوبة الوحيدة هي كيف تعطي نسخة منه لصديقك دون أن يراها أحد.',st:['يتفق الطرفان على مفتاح سري واحد.','المرسل يحوّل الرسالة لرموز باستخدام المفتاح.','المستلم يستخدم المفتاح نفسه لإرجاعها.','لو اختلف المفتاح تظهر رموز عشوائية بدل الرسالة.'],m:'التشفير المتماثل سريع جداً، لكن مشكلته توصيل المفتاح للطرف الآخر بأمان.'},
+'public-key':{an:'صندوق البريد: أي شخص يستطيع <b>رمي</b> رسالة في الفتحة (المفتاح العام)، لكن صاحب الصندوق فقط يملك المفتاح الذي <b>يفتحه</b> (المفتاح الخاص).',st:['تنشر مفتاحك العام للجميع.','المرسل يقفل رسالته بمفتاحك العام.','لا أحد يقدر على فتحها حتى المرسل نفسه.','أنت تفتحها بمفتاحك الخاص الذي لا يغادر جهازك.'],m:'المفتاح الخاص لا يُشارك أبداً. المفتاح العام وحده هو الذي يُنشر.'},
+handshake:{an:'مكالمة تعارف قبل الحديث: تتأكد من هوية الطرف الآخر، وتتفقان على <b>كلمة سر مشتركة</b>، ثم تتحدثان بسرية.',st:['Hello: المتصفح يعرض ما يدعمه من خوارزميات والخادم يختار.','الخادم يرسل شهادته ومفتاحه العام.','المتصفح يتحقق من الشهادة ثم ينشئ مفتاحاً سرياً ويرسله مقفلاً.','يبدأ الطرفان بالتشفير المتماثل السريع.'],m:'المفتاح العام يُستخدم فقط لتأسيس الاتصال، أما البيانات الكثيرة فتُشفّر بالمفتاح المتماثل لأنه أسرع.'},
+certificate:{an:'الشهادة كـ<b>بطاقة هوية</b> للموقع صادرة من جهة موثوقة (مثل إدارة المرور). المتصفح يطلب أن تكون غير منتهية وأن الاسم مطابق وأن جهة الإصدار معروفة.',st:['الموقع يرسل شهادته.','المتصفح يفحص تاريخ الانتهاء واسم الموقع.','يتتبع سلسلة الجهات الموقّعة حتى جهة جذرية يثق بها.','إذا فشل أي فحص يظهر تحذير أحمر.'],m:'وجود شهادة لا يعني أن الموقع صادق، بل أن هويته (اسم النطاق) تم التحقق منها.'},
+auth:{an:'ركوب الطائرة: تحتاج <b>شيئاً تحمله</b> (التذكرة) و<b>شيئاً أنت عليه</b> (الوجه في الجواز). لو سُرقت التذكرة وحدها لن تكفي.',st:['العامل الأول: شيء تعرفه (كلمة المرور).','العامل الثاني: شيء تملكه (الهاتف) أو أنت (البصمة).','يجب نجاح العاملين معاً.','لو سُرق أحدهما يبقى الحساب محمياً.'],m:'كلمتا مرور لا تساويان مصادقة ثنائية، لأن العاملين يجب أن يكونا من نوعين مختلفين.'},
+signature:{an:'<b>ختمك وتوقيعك</b> على ورقة: يثبت أنك الكاتب، وأي تعديل بعد التوقيع يُكتشف.',st:['تُحسب من الرسالة «بصمة» قصيرة (Hash).','يُشفّر المرسل البصمة بمفتاحه الخاص فتصبح توقيعاً.','المستلم يفكّه بمفتاح المرسل العام ويحسب بصمة الرسالة بنفسه.','التطابق = رسالة سليمة من صاحبها، والاختلاف = تم العبث.'],m:'التوقيع لا يخفي الرسالة، بل يثبت مصدرها وسلامتها. التشفير هو ما يخفيها.'},
+'all-in-one':{an:'متجر محترم: <b>باب مقفل</b> (التشفير)، <b>بطاقة هوية للمتجر</b> (الشهادة)، <b>التأكد من هويتك</b> (2FA)، و<b>إيصال موقّع</b> (التوقيع).',st:['HTTPS يحمي الاتصال.','الشهادة تؤكد أنك في المتجر الحقيقي.','2FA يؤكد أنك صاحب الحساب.','التوقيع يضمن أن الطلب لم يتغير.'],m:'كل تقنية تحل مشكلة مختلفة، ولا تغني واحدة عن الأخرى.'}};
+function simple(id){const d=SIMPLE[id],s=$('#v-'+id);if(!d||!s)return;const h=document.createElement('div');h.className='panel simple';
+h.innerHTML=`<h3>الفكرة بالبسيط</h3><p class="an">${d.an}</p><div><b>الخطوات بكلمات سهلة</b><ol>${d.st.map(x=>`<li>${x}</li>`).join('')}</ol></div><p class="mist"><b>تنبيه:</b> ${d.m}</p>`;
+const v=$('.vhead',s);v?v.after(h):s.prepend(h)}
+function sim(id,title,body,init){const s=$('#v-'+id);if(!s)return;const d=document.createElement('div');d.className='panel xsim';d.innerHTML=`<h3>${title}</h3>${body}`;s.append(d);init(d)}
+const dur=s=>{if(s<1)return'أقل من ثانية';const u=[['سنة',31557600],['يوم',86400],['ساعة',3600],['دقيقة',60],['ثانية',1]];for(const[n,v]of u)if(s>=v)return(s/v>1e6?s/v>1e12?'أكثر من تريليون':'ملايين':Math.round(s/v))+' '+n;return''};
+/* ----- home glossary ----- */
+(function(){const T=[['التشفير','تحويل الرسالة إلى رموز لا يفهمها إلا من يملك المفتاح'],['فك التشفير','إرجاع الرموز إلى الرسالة الأصلية'],['المفتاح','سر يُستخدم للقفل أو الفتح'],['المتماثل','مفتاح واحد للقفل والفتح'],['المفتاح العام','مفتاح للقفل يُنشر للجميع'],['المفتاح الخاص','مفتاح الفتح، يبقى عند صاحبه فقط'],['TLS','البروتوكول الذي يوفّر الاتصال الآمن في HTTPS'],['الشهادة الرقمية','بطاقة هوية للموقع موقّعة من جهة موثوقة'],['2FA','التحقق بعاملين مختلفين لإثبات الهوية'],['البصمة (Hash)','ملخص قصير يتغير كلياً لو تغير حرف واحد'],['التوقيع الرقمي','بصمة مشفّرة بالمفتاح الخاص تثبت المصدر والسلامة'],['المتلصص','شخص يراقب الشبكة ليقرأ ما يمر عليها']];
+const h=$('#v-home');if(!h)return;const d=document.createElement('div');d.className='panel xsim';d.innerHTML='<h3>مسرد المصطلحات</h3><input class="inp" placeholder="ابحث عن مصطلح…" aria-label="بحث"><div class="g"></div>';h.append(d);
+const g=$('.g',d),r=q=>g.innerHTML=T.filter(t=>(t[0]+t[1]).includes(q)).map(t=>`<p><b>${t[0]}:</b> <span class="muted">${t[1]}</span></p>`).join('')||'<p class="muted">لا نتيجة</p>';r('');$('input',d).oninput=e=>r(e.target.value)})();
+Object.keys(SIMPLE).forEach(simple);
+/* ----- https: what each hop sees ----- */
+sim('https','محاكاة: ماذا يرى كل طرف في الطريق؟',`<div class="row"><div class="seg"><button data-m="0" aria-pressed="true">HTTP</button><button data-m="1" aria-pressed="false">HTTPS</button></div><input class="inp" value="كلمة المرور 1234" style="flex:1"></div><div class="g" style="display:grid;gap:8px"></div><p class="try"><b>جرّب:</b> بدّل بين HTTP وHTTPS وانظر كيف يتغير ما يراه كل طرف.</p>`,d=>{let m=0;const H=['جهازك','شبكة الواي فاي','مزود الإنترنت','الخادم'],inp=$('input',d),g=$('.g',d);
+const r=()=>{g.innerHTML=H.map((n,i)=>{const own=i===0||i===3,sees=m===0||own?esc(inp.value):hexs(inp.value,i*97+5);return`<div class="hop"><b>${n}</b><div class="out mono ${m===0&&!own?'bad':own?'good':'cipher'}">${sees}</div></div>`}).join('')};
+$$('.seg button',d).forEach(b=>b.onclick=()=>{m=+b.dataset.m;$$('.seg button',d).forEach(x=>x.setAttribute('aria-pressed',x===b));r()});inp.oninput=r;r()});
+/* ----- symmetric: brute force ----- */
+sim('symmetric','محاكاة: ماذا لو خمّن المخترق المفتاح؟',`<input class="inp" value="الاجتماع غدا" aria-label="رسالة"><button class="btn primary">شفّر ثم جرّب كل المفاتيح</button><div class="out mono c"></div><div class="g mono" style="max-height:220px;overflow:auto"></div><p class="try">هنا المفاتيح <b>28 احتمالاً فقط</b> فيُكسر في لحظة. المفتاح الحقيقي AES-256 له 2<sup>256</sup> احتمالاً، أي رقم من 78 خانة، فلا يمكن تجربته.</p>`,d=>{$('button',d).onclick=()=>{const k=1+Math.floor(Math.random()*27),c=cz($('input',d).value,k);$('.c',d).textContent='النص المشفّر: '+c;$('.g',d).innerHTML=Array.from({length:28},(_,i)=>`<div class="${i===k?'out good':''}">المفتاح ${i}: ${esc(cz(c,-i))}${i===k?' ← الصحيح':''}</div>`).join('')}});
+/* ----- public key: mailbox ----- */
+sim('public-key','محاكاة: صندوق البريد',`<input class="inp" value="سر" aria-label="رسالة"><div class="row"><button class="btn primary" data-a="put">ضع الرسالة في الصندوق (بالمفتاح العام)</button><button class="btn" data-a="pub">حاول الفتح بالمفتاح العام</button><button class="btn" data-a="prv">افتح بالمفتاح الخاص</button></div><div class="out mono">الصندوق فارغ</div>`,d=>{let box=null;const o=$('.out',d);$$('button',d).forEach(b=>b.onclick=()=>{const a=b.dataset.a;if(a==='put'){box=[...$('input',d).value].map(c=>mp(c.codePointAt(0)%N,E,N));o.className='out mono cipher';o.textContent='داخل الصندوق: '+box.join(' ')}else if(!box){o.textContent='ضع رسالة أولاً'}else{const e=a==='prv'?D:E;o.className='out mono '+(a==='prv'?'good':'bad');const ch=x=>String.fromCodePoint(mp(x,e,N));const t=box.map(ch).join('');o.textContent=a==='prv'?'نجح الفتح: '+t:'فشل الفتح بالمفتاح العام، تظهر رموز عشوائية: '+t.replace(/[\u0000-\u001f\u007f-\u00a0]/g,'▯')}});});
+/* ----- handshake dialogue ----- */
+sim('handshake','محاكاة: حوار المصافحة بلغة بشرية',`<div class="g"></div><button class="btn primary">الرسالة التالية</button>`,d=>{const L=[['c','مرحباً! أريد اتصالاً آمناً، وهذه الخوارزميات التي أعرفها.'],['s','مرحباً! سنستخدم هذه الخوارزمية. وهذه شهادتي ومفتاحي العام.'],['c','أتحقق من شهادتك… التاريخ سليم والاسم مطابق وجهة الإصدار موثوقة.'],['c','أنشأت مفتاحاً سرياً جديداً وقفلته بمفتاحك العام وأرسلته.'],['s','فتحته بمفتاحي الخاص. الآن نملك المفتاح نفسه.'],['c','من الآن نتحدث بالتشفير المتماثل السريع. تم الاتصال الآمن!']];let i=0;const g=$('.g',d),b=$('button',d);b.onclick=()=>{if(i>=L.length){g.innerHTML='';i=0;b.textContent='الرسالة التالية';return}g.insertAdjacentHTML('beforeend',`<div class="bub ${L[i][0]}"><b>${L[i][0]==='c'?'المتصفح':'الخادم'}:</b> ${L[i][1]}</div>`);i++;if(i>=L.length)b.textContent='إعادة'}});
+/* ----- certificate chain ----- */
+sim('certificate','محاكاة: سلسلة الثقة، اكسر أي حلقة',`<div class="lk"></div><div class="out"></div>`,d=>{const N3=['الجهة الجذرية (موثوقة في جهازك)','الجهة الوسيطة','شهادة الموقع'],br=[0,0,0],lk=$('.lk',d),o=$('.out',d);const r=()=>{lk.innerHTML=N3.map((n,i)=>`<button class="btn" data-i="${i}" aria-pressed="${!!br[i]}">${br[i]?'✗':'✓'} ${n}</button>`).join('');const f=br.findIndex(x=>x);o.className='out '+(f<0?'good':'bad');o.textContent=f<0?'السلسلة سليمة من الجذر حتى الموقع: يظهر القفل.':'انكسرت الحلقة «'+N3[f]+'»: يظهر تحذير لأن المتصفح لا يستطيع إثبات الثقة.';$$('button',lk).forEach(b=>b.onclick=()=>{br[+b.dataset.i]^=1;r()})};r()});
+/* ----- auth: password strength ----- */
+sim('auth','محاكاة: كم يستغرق تخمين كلمة المرور؟',`<input class="inp mono" value="ahmed2020" aria-label="كلمة مرور"><div class="out"></div><p class="try">نفترض مخترقاً يجرب 10 مليارات محاولة في الثانية. لاحظ أن زيادة الطول أهم من تعقيد الحروف، ولهذا تبقى 2FA ضرورية حتى مع كلمة قوية.</p>`,d=>{const r=()=>{const p=$('input',d).value;let n=0;if(/[a-z]/.test(p))n+=26;if(/[A-Z]/.test(p))n+=26;if(/\d/.test(p))n+=10;if(/[^\w]/.test(p))n+=32;const s=n?Math.pow(n,p.length)/1e10/2:0,o=$('.out',d);o.className='out '+(s<86400?'bad':s<3e7*30?'warn':'good');o.innerHTML=`عدد الاحتمالات: ${n?n+'<sup>'+p.length+'</sup>':'—'}<br><b>زمن التخمين التقريبي: ${n?dur(s):'—'}</b>`};$('input',d).oninput=r;r()});
+/* ----- signature: avalanche ----- */
+sim('signature','محاكاة: بصمة تتغير بالكامل بتغيير حرف',`<textarea class="inp" rows="2">حوّل 100 جنيه إلى أحمد</textarea><p class="lbl">بصمة الرسالة الأصلية:</p><div class="out mono o"></div><p class="lbl">بصمة النسخة الحالية (غيّر حرفاً):</p><div class="out mono n"></div><p class="tag info c"></p>`,d=>{const t=$('textarea',d),orig=t.value,H=async x=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(x)))].map(b=>b.toString(16).padStart(2,'0')).join('');(async()=>{const a=await H(orig);$('.o',d).textContent=a;const r=async()=>{const b=await H(t.value);$('.n',d).innerHTML=[...b].map((c,i)=>c===a[i]?c:`<span class="dif">${c}</span>`).join('');const k=[...b].filter((c,i)=>c!==a[i]).length;$('.c',d).textContent=k?`تغيّر ${k} من 64 خانة: الرسالة معدّلة والتوقيع لن يتحقق`:'البصمتان متطابقتان: الرسالة سليمة'};t.oninput=r;r()})()});
+/* ----- all-in-one: match threat to tech ----- */
+sim('all-in-one','محاكاة: اختر الحل المناسب لكل خطر',`<div class="g" style="display:grid;gap:8px"></div>`,d=>{const Q=[['متلصص يقرأ بياناتك على الواي فاي','تشفير HTTPS'],['موقع مزيف ينتحل البنك','الشهادة الرقمية'],['شخص عرف كلمة مرورك','المصادقة الثنائية'],['تعديل مبلغ الطلب أثناء الإرسال','التوقيع الرقمي']],O=['تشفير HTTPS','الشهادة الرقمية','المصادقة الثنائية','التوقيع الرقمي'];$('.g',d).innerHTML=Q.map((q,i)=>`<div class="hop"><span>${q[0]}</span><div class="row"><select class="inp" data-i="${i}"><option value="">اختر…</option>${O.map(o=>`<option>${o}</option>`).join('')}</select><span class="tag"></span></div></div>`).join('');$$('select',d).forEach(s=>s.onchange=()=>{const t=s.nextElementSibling,ok=s.value===Q[+s.dataset.i][1];t.className='tag '+(ok?'good':'bad');t.textContent=s.value?(ok?'صحيح':'حاول مجدداً'):''})});
+})();
+</script>
+</body></html>
