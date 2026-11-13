@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>معمل تصميم أمان الشبكات</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@500;600;700&display=swap">
+<style>
+:root{
+  --bg:#EEF3F5; --surface:#FFFFFF; --surface2:#E3EBEE; --fg:#10242C; --muted:#4D646E; --line:#C9D7DC;
+  --accent:#0B7A85; --accent-ink:#FFFFFF; --accent-soft:#D3EEF0;
+  --good:#17814F; --good-soft:#D8F0E3; --bad:#B8312A; --bad-soft:#F8DDDA; --bad-ink:#FFFFFF;
+  --warn:#8F5400; --warn-soft:#FBEBCB;
+  --cipher:#5B3FA8; --cipher-soft:#E7E0F7;
+  --f-display:'Readex Pro','IBM Plex Sans Arabic',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C1A20; --surface:#132830; --surface2:#1A343E; --fg:#E3EFF2; --muted:#9DB6BE; --line:#27434D;
+    --accent:#3FC1CC; --accent-ink:#05262B; --accent-soft:#12383E;
+    --good:#4CC98A; --good-soft:#123626; --bad:#FF8A80; --bad-soft:#3E1B19; --bad-ink:#2A0A08;
+    --warn:#F2B04C; --warn-soft:#3B2C0E;
+    --cipher:#B9A4F5; --cipher-soft:#2A2250;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C1A20; --surface:#132830; --surface2:#1A343E; --fg:#E3EFF2; --muted:#9DB6BE; --line:#27434D;
+  --accent:#3FC1CC; --accent-ink:#05262B; --accent-soft:#12383E;
+  --good:#4CC98A; --good-soft:#123626; --bad:#FF8A80; --bad-soft:#3E1B19; --bad-ink:#2A0A08;
+  --warn:#F2B04C; --warn-soft:#3B2C0E;
+  --cipher:#B9A4F5; --cipher-soft:#2A2250;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{font-size:100%}
+html.big{font-size:118%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:1rem;line-height:1.75}
+.gutter{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4,p{margin:0}
+.i{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.22em;flex:none}
+.stack{display:grid;gap:8px;min-width:0}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px 2px;max-width:1160px;margin-inline:auto}
+.brand{display:flex;align-items:center;gap:10px;color:var(--fg);text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:1.1rem}
+.brand .logo{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent);color:var(--accent-ink)}
+.tabs{display:flex;gap:2px;overflow-x:auto;max-width:1160px;margin-inline:auto;scrollbar-width:thin}
+.tabs a{color:var(--muted);text-decoration:none;padding:8px 13px;border-bottom:3px solid transparent;font-weight:500;white-space:nowrap}
+.tabs a:hover{color:var(--fg)}
+.tabs a[aria-current="page"]{color:var(--accent);border-color:var(--accent);font-weight:700}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{max-width:1160px;margin-inline:auto;padding-block:26px 64px}
+.view[hidden]{display:none}
+.kicker{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.05em;color:var(--accent);direction:ltr;text-align:right;font-weight:500}
+.vhead{display:grid;gap:6px;margin-bottom:20px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.7rem,4.4vw,2.6rem);line-height:1.25;text-wrap:balance}
+.lead{font-size:1.1rem;color:var(--muted);max-width:62ch}
+.grid2{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.note h3{font-family:var(--f-display);font-size:1.05rem}
+.note ul{margin:0;padding-inline-start:1.15rem;display:grid;gap:8px}
+.note li::marker{color:var(--accent)}
+.try{padding:9px 13px;border-radius:10px;background:var(--accent-soft);font-size:.95rem}
+.try b{color:var(--accent)}
+.lbl{display:block;font-size:.85rem;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.two{grid-template-columns:minmax(0,1fr)}}
+.simple{border-inline-start:5px solid var(--good);margin-bottom:20px}
+.simple h3{font-family:var(--f-display);color:var(--good)}
+.simple .an{padding:10px 12px;border-radius:10px;background:var(--good-soft);color:var(--fg)}
+.simple ol{margin:0;padding-inline-start:1.3rem;display:grid;gap:6px}
+.simple .mist{padding:9px 12px;border-radius:10px;background:var(--warn-soft);color:var(--fg)}
+
+/* controls */
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface2);color:var(--fg);padding:8px 16px;border-radius:10px;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--bad-ink)}
+.btn.sm{padding:4px 12px;font-size:.88rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.inp{font:inherit;width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;padding:7px 18px;background:var(--surface);color:var(--muted);border:0;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button.neg[aria-pressed="true"]{background:var(--bad);color:var(--bad-ink)}
+.check{display:flex;gap:8px;align-items:center;cursor:pointer}
+.check input{width:1.1rem;height:1.1rem;accent-color:var(--accent)}
+.tag{display:inline-flex;gap:6px;align-items:center;padding:1px 10px;border-radius:999px;font-size:.84rem;font-weight:600;background:var(--surface2);color:var(--fg)}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.info{background:var(--accent-soft);color:var(--accent)}
+.chip{display:inline-flex;gap:6px;align-items:center;padding:2px 10px;border-radius:8px;background:var(--surface2);font-size:.88rem}
+.mono{font-family:var(--f-mono);direction:ltr;text-align:left;unicode-bidi:isolate;overflow-wrap:anywhere;font-size:.88rem;line-height:1.6}
+.out{border:1px dashed var(--line);border-radius:10px;padding:9px 12px;min-height:2.9rem;background:var(--bg);overflow-wrap:anywhere}
+.out.cipher{background:var(--cipher-soft);color:var(--cipher);border-color:transparent}
+.out.good{background:var(--good-soft);color:var(--good);border-color:transparent}
+.out.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.out.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+mark{background:var(--bad);color:var(--bad-ink);padding:0 4px;border-radius:4px;font-weight:700}
+.result{padding:14px;border-radius:12px;display:grid;gap:6px}
+.result.good{background:var(--good-soft);color:var(--good)}
+.result.bad{background:var(--bad-soft);color:var(--bad)}
+.result p{color:var(--fg)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* stage + packets */
+.stage{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:18px 10px 10px;border-radius:12px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.wire{position:absolute;left:12%;right:12%;top:46px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
+.node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;width:clamp(78px,24%,130px);font-size:.85rem;line-height:1.4}
+.node .ico{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line);color:var(--fg);transition:box-shadow .2s,border-color .2s}
+.node .ico .i{width:28px;height:28px}
+.node .ico.on{border-color:var(--good);color:var(--good);box-shadow:0 0 0 4px var(--good-soft)}
+.node .ico.watch{border-color:var(--bad);color:var(--bad);box-shadow:0 0 0 4px var(--bad-soft)}
+.node .slot{min-height:1.7rem;display:flex;flex-direction:column;gap:3px;align-items:center}
+.packet{position:absolute;z-index:5;max-width:9.5rem;padding:3px 10px;border-radius:8px;font-family:var(--f-mono);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;pointer-events:none}
+.packet.plain{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad)}
+.packet.cipher{background:var(--cipher-soft);color:var(--cipher);border:1px solid var(--cipher)}
+.packet.ok{background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
+.packet.info{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent)}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:center;margin-bottom:26px}
+@media (max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero .vhead{margin:0}
+.demo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px}
+.demo-line{padding:12px;border-radius:10px;background:var(--bad-soft);color:var(--bad);transition:opacity .25s,background .25s}
+.demo-line.ok{background:var(--good-soft);color:var(--good)}
+.demo-cap{display:flex;gap:8px;align-items:center;font-weight:600}
+.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:22px}
+@media (min-width:640px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+a.card{display:grid;gap:4px;align-content:start;padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;color:inherit;text-decoration:none;transition:border-color .15s,transform .15s}
+a.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+a.card .ci{color:var(--accent);font-size:1.5rem}
+a.card b{font-family:var(--f-display);font-size:1.05rem}
+a.card span.d{color:var(--muted);font-size:.92rem;line-height:1.55}
+.goals ul{margin:0;padding-inline-start:1.15rem;display:grid;gap:6px}
+
+/* details */
+.lesson-detail{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0;overflow:hidden}
+.lesson-detail>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;color:var(--accent);font-family:var(--f-display);font-weight:700;cursor:pointer}
+.lesson-detail>summary::-webkit-details-marker{display:none}
+.lesson-detail>summary::after{content:"＋";font-family:var(--f-mono);font-size:1.1rem}
+.lesson-detail[open]>summary::after{content:"−"}
+.lesson-detail .detail-body{padding:0 18px 18px;display:grid;gap:14px}
+.lesson-detail h3{font-family:var(--f-display);font-size:1rem;margin-bottom:4px}
+.lesson-detail p{color:var(--muted)}
+.lesson-detail ul{margin:6px 0 0;padding-inline-start:1.25rem;display:grid;gap:6px}
+.lesson-detail li::marker{color:var(--accent)}
+.lesson-detail .detail-callout{padding:10px 12px;border-radius:10px;background:var(--accent-soft);color:var(--fg)}
+.lesson-detail .detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lesson-detail .detail-card{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+@media(max-width:600px){.lesson-detail .detail-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* firewall */
+.rules{display:grid;gap:8px}
+.rule{display:flex;gap:10px;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.rule.danger{border-color:var(--bad);background:var(--bad-soft)}
+.rule .n{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:var(--f-mono);flex:none}
+.traffic{display:grid;gap:8px}
+.tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.tr.okk{border-color:var(--good)}.tr.noo{border-color:var(--bad)}
+.tr .res{grid-column:1/-1;font-size:.9rem}
+
+/* zones (DMZ) */
+.zones{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:6px;align-items:stretch}
+@media (max-width:760px){.zones{grid-template-columns:minmax(0,1fr)}.zones .wall{min-height:34px;writing-mode:horizontal-tb!important}}
+.zone{border:2px dashed var(--line);border-radius:12px;padding:10px;display:grid;gap:8px;align-content:start;background:var(--bg);min-height:190px}
+.zone h4{font-family:var(--f-display);font-size:.95rem;display:flex;gap:6px;align-items:center}
+.zone.dmz{border-color:var(--warn);background:var(--warn-soft)}
+.zone.inner{border-color:var(--good)}
+.wall{display:grid;place-items:center;padding:4px 8px;border-radius:8px;background:var(--surface2);color:var(--muted);font-weight:700;font-size:.8rem;writing-mode:vertical-rl;text-align:center}
+.wall.up{background:var(--accent);color:var(--accent-ink)}
+.wall.hot{background:var(--bad);color:var(--bad-ink)}
+.srv{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);transition:background .2s,border-color .2s}
+.srv.hit{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.srv.safe{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+
+/* layers / badges */
+.badges{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.badges li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);opacity:.5;transition:opacity .25s,border-color .25s,background .25s}
+.badges li.lit{opacity:1;border-color:var(--good);background:var(--good-soft)}
+.badges li b{display:block;font-family:var(--f-display);font-size:.95rem}
+.badges li span.d{font-size:.85rem;color:var(--muted)}
+.num{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-family:var(--f-mono);flex:none}
+.layer{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--bg);transition:border-color .2s,background .2s}
+.layer.off{opacity:.55;border-style:dashed}
+.layer.pass{border-color:var(--warn);background:var(--warn-soft)}
+.layer.stop{border-color:var(--good);background:var(--good-soft)}
+.layer.breach{border-color:var(--bad);background:var(--bad-soft)}
+.layer b{font-family:var(--f-display)}
+.layer .why{font-size:.88rem;color:var(--muted)}
+
+/* zero trust */
+.checks{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--line);font-size:.92rem}
+.checks li .st{width:1.3em;display:grid;place-items:center;flex:none;color:var(--muted)}
+.checks li.pass{border-color:var(--good)}.checks li.pass .st{color:var(--good)}
+.checks li.fail{border-color:var(--bad)}.checks li.fail .st{color:var(--bad)}
+.checks li.skip{opacity:.5}
+.orderrow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+
+/* steps */
+.stepper{display:flex;flex-wrap:wrap;gap:8px}
+.stepper .btn{display:flex;gap:8px;align-items:center}
+.stepper .btn .num{width:22px;height:22px;font-size:.8rem}
+.browser{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.bbar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.url{flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:var(--bg);font-family:var(--f-mono);font-size:.85rem;direction:ltr;white-space:nowrap;overflow:hidden}
+.bpage{padding:16px;display:grid;gap:12px}
+
+/* quiz */
+.quiz{max-width:780px;display:grid;gap:18px}
+.q{display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.q.done-good{border-color:var(--good)}
+.q.done-bad{border-color:var(--bad)}
+.q .opts{display:flex;flex-wrap:wrap;gap:8px}
+.fb{font-size:.92rem}
+.score{position:sticky;bottom:12px;justify-self:start}
+details{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg)}
+summary{cursor:pointer;font-weight:600}
+.xsim h3{font-family:var(--f-display)}
+.hop{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:8px;align-items:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3M14 9l2 2"/></symbol>
+<symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+<symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
+<symbol id="i-wall" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v5M15 9v5M9 14v6"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/></symbol>
+<symbol id="i-tunnel" viewBox="0 0 24 24"><path d="M3 18V12a9 9 0 0 1 18 0v6"/><path d="M8 18v-6a4 4 0 0 1 8 0v6M3 18h18"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
+<symbol id="i-bug" viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="12" rx="4"/><path d="M12 8V5M9 5l-2-2M15 5l2-2M8 12H4M16 12h4M8 17l-3 2M16 17l3 2"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5M3 17.5l9 5 9-5" /></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+<symbol id="i-cross" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l3 12h11l2-8H6"/></symbol>
+<symbol id="i-quiz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
+<symbol id="i-building" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-5h4v5"/></symbol>
+</defs>
+</svg>
+
+<header class="top">
+  <div class="gutter topin">
+    <a class="brand" href="#home"><span class="logo" data-ic="shield"></span><span>معمل تصميم أمان الشبكات</span></a>
+    <div class="row">
+      
+      <a class="btn sm" href="index.html">درس التشفير والمصادقة</a>
+      <button class="btn sm" id="themeBtn" type="button" aria-pressed="false">الوضع الداكن</button>
+      <button class="btn sm" id="bigBtn" type="button" aria-pressed="false">تكبير الخط</button>
+    </div>
+  </div>
+  <nav class="gutter tabs" id="tabs" aria-label="مفاهيم الدرس"></nav>
+</header>
+
+<main class="gutter">
+
+<!-- ============ HOME ============ -->
+<section class="view" id="v-home">
+  <div class="hero">
+    <div class="vhead">
+      <p class="kicker">Firewall · VPN · DMZ · Defense in Depth · Zero Trust</p>
+      <h1>الشبكة الآمنة تُصمَّم طبقات، لا تُبنى بحائط واحد</h1>
+      <p class="lead">تقنيات التشفير والمصادقة وحدها لا تكفي. حتى لو حميت الاتصال، قد تُخترق الشبكة نفسها. في هذا المعمل تجرّب بنفسك كيف تصمّم الشبكة حتى لا يؤدي فشل إجراء واحد إلى انهيار كل شيء.</p>
+    </div>
+    <div class="demo" aria-hidden="true">
+      <span class="lbl">مهاجم يحاول الوصول إلى بيانات العملاء</span>
+      <div class="demo-line mono" id="demo-line">attacker → customer-db</div>
+      <p class="demo-cap"><span id="demo-ic" data-ic="warn"></span><span id="demo-label">بدون أي حماية: وصل المهاجم للبيانات</span></p>
+    </div>
+  </div>
+  <div class="cards">
+    <a class="card" href="#firewall"><span class="ci" data-ic="wall"></span><b>جدار الحماية</b><span class="d">اكتب القواعد وشاهد أي حركة مرور تُسمح وأيها تُمنع.</span></a>
+    <a class="card" href="#vpn"><span class="ci" data-ic="tunnel"></span><b>الشبكة الافتراضية الخاصة VPN</b><span class="d">نفق مشفّر عبر Wi‑Fi عام، وماذا يرى المتلصص.</span></a>
+    <a class="card" href="#dmz"><span class="ci" data-ic="server"></span><b>المنطقة المعزولة DMZ</b><span class="d">اخترق خادم الويب وانظر هل يصل المهاجم للداخل.</span></a>
+    <a class="card" href="#depth"><span class="ci" data-ic="layers"></span><b>الدفاع في العمق</b><span class="d">عطّل طبقات الحماية وراقب أي هجوم ينجح.</span></a>
+    <a class="card" href="#zerotrust"><span class="ci" data-ic="user"></span><b>انعدام الثقة</b><span class="d">قارن بين المحيط التقليدي ونهج «لا تثق أبداً».</span></a>
+    <a class="card" href="#all-in-one"><span class="ci" data-ic="cart"></span><b>كل شيء معاً</b><span class="d">تصميم شبكة متجر إلكتروني خطوة بخطوة.</span></a>
+    <a class="card" href="#quiz"><span class="ci" data-ic="quiz"></span><b>اختبر نفسك</b><span class="d">أسئلة صح وخطأ ومطابقة وسؤال بنمط الامتحان.</span></a>
+  </div>
+  <div class="panel goals">
+    <h3>أهداف التعلم</h3>
+    <ul>
+      <li>شرح دور جدار الحماية والشبكة الافتراضية الخاصة والمنطقة المعزولة في حماية الشبكة.</li>
+      <li>توضيح كيف يقلل الدفاع في العمق من أثر فشل أي إجراء أمني منفرد.</li>
+      <li>المقارنة بين نهج المحيط التقليدي ونهج انعدام الثقة، وتبرير الاختيار في سياق محدد.</li>
+    </ul>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: خريطة الدرس وكيف تذاكره</summary>
+    <div class="detail-body">
+      <div><h3>الفكرة الرئيسية</h3><p>في الدرس السابق تعلمت كيف تحمي تقنيات التشفير والمصادقة الاتصال والحسابات. لكن الشبكة نفسها قد تُخترق إذا كان تصميمها ضعيفاً. لذلك تُحمى شبكات المؤسسات بتصميم يقلل احتمال الدخول ويحدّ من الضرر إذا حدث اختراق.</p></div>
+      <div class="detail-grid">
+        <div class="detail-card"><h3>الفكرة الأساسية</h3><p>يأتي أمان الشبكات القوي من تكديس الإجراءات: جدار حماية، وشبكة افتراضية خاصة، ومنطقة معزولة، وحماية للأجهزة الطرفية. ومن التحقق من كل عملية وصول (نهج انعدام الثقة)، وليس من حاجز واحد.</p></div>
+        <div class="detail-card"><h3>ترتيب الدراسة المقترح</h3><p>جدار الحماية ثم VPN ثم DMZ ثم الدفاع في العمق ثم انعدام الثقة، وبعدها «كل شيء معاً» والاختبار.</p></div>
+      </div>
+      <p class="detail-callout"><b>طريقة الاستفادة:</b> اقرأ «الفكرة بالبسيط»، نفّذ التجربة، غيّر شيئاً واحداً في كل مرة، ثم فسّر ما حدث بكلماتك. هذه محاكاة تعليمية وليست أنظمة حماية حقيقية.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ============ FIREWALL ============ -->
+<section class="view" id="v-firewall" hidden>
+  <div class="vhead">
+    <p class="kicker">Firewall</p>
+    <h1>جدار الحماية</h1>
+    <p class="lead">نظام يراقب حركة المرور ويقرر السماح أو المنع وفق قواعد محددة مسبقاً. أنت من يكتب القواعد هنا.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> أرسل الحركات الأربع. الهدف: تُسمح الحركات المشروعة وتُمنع الهجمات. ثم فعّل القاعدة 3 وشاهد ماذا يحدث.</p>
+      <div class="stack"><span class="lbl">قواعد الجدار (تُفحص بالترتيب، وأول قاعدة تنطبق هي التي تُنفَّذ)</span><div class="rules" id="f-rules"></div></div>
+      <div class="row"><label class="lbl" for="f-def">إذا لم تنطبق أي قاعدة:</label>
+        <select class="inp" id="f-def" style="max-width:260px"><option value="deny">منع (السياسة الافتراضية الآمنة)</option><option value="allow">سماح</option></select></div>
+      <div class="stage" id="f-stage" aria-label="مسار الحركة">
+        <div class="wire"></div>
+        <div class="node" id="f-net"><div class="ico" data-ic="globe"></div><b>الإنترنت</b><span class="muted">زوار ومهاجمون</span></div>
+        <div class="node" id="f-fw"><div class="ico" data-ic="wall"></div><b>جدار الحماية</b><div class="slot" id="f-fwtag"></div></div>
+        <div class="node" id="f-lan"><div class="ico" data-ic="server"></div><b>شبكة المتجر</b><span class="muted">خادم ويب + قاعدة بيانات</span></div>
+      </div>
+      <div class="stack"><span class="lbl">حركة المرور المطلوب فحصها</span><div class="traffic" id="f-traffic"></div></div>
+      <div class="tag info" id="f-score" aria-live="polite">لم تُرسل أي حركة بعد</div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>الجدار يقرر بحسب المصدر والوجهة والمنفذ، لا بحسب نية المرسل.</li>
+        <li>مثال الدرس: السماح بالوصول إلى خادم الويب مع منع الوصول الخارجي المباشر إلى قاعدة البيانات.</li>
+        <li>قاعدة «السماح للجميع» تُبطل فائدة الجدار كله.</li>
+        <li>يمكن وضع الجدار عند حدود الشبكة أو بين أجزائها الداخلية.</li>
+      </ul>
+    </aside>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: كيف يقرر الجدار؟</summary>
+    <div class="detail-body">
+      <div><h3>التعريف</h3><p>جدار الحماية (Firewall) نظام أو برنامج يراقب حركة مرور الشبكة ويسمح بها أو يمنعها وفق قواعد أمنية محددة مسبقاً. يوجد عند حدود الشبكة أو بين أجزائها أو على الجهاز نفسه.</p></div>
+      <div><h3>مبدأ «المنع افتراضياً»</h3><p>الأفضل أن تسمح فقط بما تحتاجه فعلاً وتمنع كل ما عداه. في التجربة غيّر السياسة الافتراضية إلى «سماح» وشاهد كيف تنجح هجمات لم تكتب لها قاعدة.</p></div>
+      <p class="detail-callout"><b>تذكّر:</b> الجدار وحده لا يكفي. المهاجم قد يستخدم منفذاً مسموحاً (مثل 443) أو يصيب جهازاً من الداخل. لذلك نحتاج بقية الطبقات.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ============ VPN ============ -->
+<section class="view" id="v-vpn" hidden>
+  <div class="vhead">
+    <p class="kicker">VPN · Virtual Private Network</p>
+    <h1>الشبكة الافتراضية الخاصة VPN</h1>
+    <p class="lead">شبكة منطقية خاصة تُبنى فوق شبكة عامة، وتستخدم التشفير وتقنيات النفق لحماية البيانات.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> أرسل الرسالة والـ VPN مطفأ، ثم شغّله وأرسل مرة أخرى. بدّل بين حالتي الاستخدام.</p>
+      <div class="row"><span class="lbl">حالة الاستخدام</span>
+        <div class="seg" id="v-mode"><button type="button" data-m="remote" aria-pressed="true">العمل عن بعد</button><button type="button" data-m="branch" aria-pressed="false">ربط الفروع</button></div></div>
+      <div class="row"><span class="lbl">الـ VPN</span>
+        <div class="seg" id="v-seg"><button type="button" class="neg" data-v="off" aria-pressed="true">مطفأ</button><button type="button" data-v="on" aria-pressed="false">يعمل</button></div></div>
+      <div><label class="lbl" for="v-msg">البيانات المرسلة</label><input class="inp" id="v-msg" value="تقرير المبيعات السري" dir="auto"></div>
+      <div><button class="btn primary" id="v-send" type="button">أرسل</button></div>
+      <div class="stage" id="v-stage">
+        <div class="wire"></div>
+        <div class="node" id="v-a"><div class="ico" data-ic="monitor"></div><b id="v-an"></b><div class="slot" id="v-atag"></div></div>
+        <div class="node" id="v-m"><div class="ico" data-ic="eye"></div><b id="v-mn"></b><span class="muted">متلصص يراقب</span></div>
+        <div class="node" id="v-b"><div class="ico" data-ic="building"></div><b id="v-bn"></b><div class="slot" id="v-btag"></div></div>
+      </div>
+      <div class="two">
+        <div class="stack"><span class="lbl">ما يراه المتلصص على الشبكة العامة</span><div class="out mono" id="v-eve">—</div></div>
+        <div class="stack"><span class="lbl">ما يصل إلى الوجهة</span><div class="out" id="v-dst">—</div></div>
+      </div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>العمل عن بعد: اتصال آمن بشبكة المؤسسة من المنزل أو أثناء التنقل.</li>
+        <li>ربط الفروع: ربط مكاتب في مواقع مختلفة بأمان كأنها شبكة واحدة.</li>
+        <li>لأن المحتوى مشفّر، تقل مخاطر التنصت على Wi‑Fi عام.</li>
+        <li>الـ VPN يحمي المسار فقط، ولا يجعل كل موقع تزوره موثوقاً.</li>
+      </ul>
+    </aside>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: النفق والتشفير</summary>
+    <div class="detail-body">
+      <div><h3>كيف يعمل؟</h3><p>يُنشئ جهازك اتصالاً مشفّراً (نفقاً) مع بوابة VPN عند الجهة الأخرى. كل ما يمر داخل النفق يبدو للمتلصص كرموز عشوائية. عند البوابة تُفك البيانات وتدخل شبكة المؤسسة.</p></div>
+      <div><h3>أين الحدود؟</h3><p>الـ VPN لا يمنع الفيروسات ولا يمنع التصيّد. وإذا كان حسابك مسروقاً فسيدخل المهاجم عبر النفق نفسه، ولهذا يُدمج مع المصادقة الثنائية ونهج انعدام الثقة.</p></div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ DMZ ============ -->
+<section class="view" id="v-dmz" hidden>
+  <div class="vhead">
+    <p class="kicker">DMZ · Demilitarized Zone</p>
+    <h1>المنطقة المعزولة DMZ</h1>
+    <p class="lead">منطقة تُوضع فيها الخوادم المعرّضة للإنترنت (ويب وبريد) منفصلة عن الشبكة الداخلية، حتى إذا سقط أحدها لا يصل المهاجم بسهولة للداخل.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> اضغط «المهاجم يخترق خادم الويب» والـ DMZ مفعّلة، ثم عطّلها وأعد المحاولة.</p>
+      <div class="row"><span class="lbl">تصميم الشبكة</span>
+        <div class="seg" id="d-seg"><button type="button" data-v="on" aria-pressed="true">مع DMZ</button><button type="button" class="neg" data-v="off" aria-pressed="false">بدون DMZ</button></div></div>
+      <div class="zones" id="d-zones"></div>
+      <div class="row"><button class="btn danger" id="d-atk" type="button">المهاجم يخترق خادم الويب</button><button class="btn" id="d-reset" type="button">إعادة</button></div>
+      <div id="d-res" aria-live="polite"></div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>الخوادم العامة هي الأكثر عرضة للهجوم لأن الجميع يصل إليها.</li>
+        <li>الجدار الداخلي يقف بين الـ DMZ والداخل ويسمح فقط بما هو ضروري.</li>
+        <li>بدون DMZ يصبح الخادم المخترق نقطة انطلاق داخل الشبكة.</li>
+      </ul>
+    </aside>
+  </div>
+  <div class="panel xsim" style="margin-top:20px">
+    <h3>لعبة: أين نضع كل خادم؟</h3>
+    <div class="traffic" id="d-game"></div>
+    <div class="tag info" id="d-score" aria-live="polite">لم تجب بعد</div>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: لماذا نعزل الخوادم العامة؟</summary>
+    <div class="detail-body">
+      <div><h3>مبدأ العزل</h3><p>الـ DMZ منطقة وسيطة بين الإنترنت والشبكة الداخلية. تُوضع فيها الخدمات التي يجب أن تتواصل مع الخارج مثل خادم الويب وخادم البريد. أما البيانات الحساسة فتبقى في الشبكة الداخلية خلف جدار إضافي.</p></div>
+      <p class="detail-callout"><b>تذكّر:</b> الـ DMZ لا تمنع اختراق الخادم العام، لكنها تقلل الضرر وتمنع انتقال الهجوم إلى الداخل.</p>
+    </div>
+  </details>
+</section>
+
+<!-- ============ DEPTH ============ -->
+<section class="view" id="v-depth" hidden>
+  <div class="vhead">
+    <p class="kicker">Defense in Depth</p>
+    <h1>الدفاع في العمق</h1>
+    <p class="lead">استخدام طبقات متعددة من الضوابط، بحيث تساعد الطبقات الأخرى على تقليل الخطر إذا فشلت إحداها.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> شغّل الطبقات الأربع وأطلق كل هجوم. ثم عطّل طبقة واحدة وانظر أي هجوم ينجح.</p>
+      <div class="stack" id="g-layers"></div>
+      <div class="stack"><span class="lbl">اختر هجوماً</span><div class="row" id="g-atks"></div></div>
+      <div id="g-res" aria-live="polite"></div>
+      <div class="tag info" id="g-score">لم تُجرَّب هجمات بعد</div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>بعض الهجمات توقفها أكثر من طبقة، فلا يُسقطها فشل طبقة واحدة.</li>
+        <li>وبعض الهجمات لا توقفها إلا طبقة محددة، لذلك لا تُغني طبقة عن أخرى.</li>
+        <li>الهدف ليس منع كل اختراق، بل ألا يؤدي اختراق واحد إلى الكارثة.</li>
+      </ul>
+    </aside>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: الطبقات الأربع وأمثلتها</summary>
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-card"><h3>الطبقة 1: مدخل الشبكة</h3><p>منع الاتصال غير المصرح به باستخدام جدار الحماية.</p></div>
+        <div class="detail-card"><h3>الطبقة 2: مسار الاتصال</h3><p>تشفير الاتصال باستخدام الشبكة الافتراضية الخاصة VPN.</p></div>
+        <div class="detail-card"><h3>الطبقة 3: وضع الخوادم</h3><p>فصل الخوادم المواجهة للجمهور عن الشبكة الداخلية باستخدام DMZ.</p></div>
+        <div class="detail-card"><h3>الطبقة 4: الأجهزة الطرفية</h3><p>تثبيت برنامج مكافحة الفيروسات والحفاظ على تحديث نظام التشغيل.</p></div>
+      </div>
+      <div><h3>تشبيه القلعة</h3><p>القلعة القديمة لا تكتفي بسور خارجي: خندق ثم سور ثم أبراج حراسة ثم أبواب داخلية مقفلة. إذا تجاوز العدو سوراً واجه الذي بعده.</p></div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ ZERO TRUST ============ -->
+<section class="view" id="v-zerotrust" hidden>
+  <div class="vhead">
+    <p class="kicker">Zero Trust</p>
+    <h1>نهج انعدام الثقة</h1>
+    <p class="lead">لا يمنح الثقة تلقائياً لمستخدم أو جهاز داخل الشبكة. يفحص الهوية والصلاحيات والسياق عند كل طلب وصول: «لا تثق أبداً، وتحقق دائماً».</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <p class="try"><b>جرّب:</b> اختر سيناريو، ثم بدّل بين النموذجين وقارن القرار.</p>
+      <div class="stack"><span class="lbl">سيناريو جاهز</span><div class="row" id="z-pre"></div></div>
+      <div class="row"><span class="lbl">النموذج الأمني</span>
+        <div class="seg" id="z-seg"><button type="button" data-v="trad" aria-pressed="true">المحيط التقليدي</button><button type="button" data-v="zero" aria-pressed="false">انعدام الثقة</button></div></div>
+      <div class="two">
+        <label class="check"><input type="checkbox" id="z-in"> داخل شبكة المؤسسة</label>
+        <label class="check"><input type="checkbox" id="z-id"> هوية موثّقة (مصادقة ثنائية)</label>
+        <label class="check"><input type="checkbox" id="z-dev"> جهاز مسجّل ومحدَّث</label>
+        <label class="check"><input type="checkbox" id="z-perm"> يملك صلاحية لهذا المورد</label>
+        <label class="check"><input type="checkbox" id="z-beh"> السلوك طبيعي</label>
+      </div>
+      <ul class="checks" id="z-checks"></ul>
+      <div id="z-res" aria-live="polite"></div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يجب أن تلاحظه</h3>
+      <ul>
+        <li>المحيط التقليدي يفترض أن «الداخل» آمن و«الخارج» خطر.</li>
+        <li>مع الخدمات السحابية والعمل عن بعد أصبحت الحدود غير واضحة.</li>
+        <li>انعدام الثقة يتحقق من الهوية والجهاز والصلاحية في كل طلب.</li>
+        <li>المهاجم الذي دخل الشبكة لا يحصل تلقائياً على شيء.</li>
+      </ul>
+    </aside>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: لماذا لم يعد المحيط كافياً؟</summary>
+    <div class="detail-body">
+      <div><h3>الأمان التقليدي للمحيط</h3><p>كان الأمان يُبنى حول محيط الشبكة: من يدخل عبر الجدار يُعامل كأنه موثوق. لكن مع الخدمات السحابية وأجهزة الموظفين المتنقلة صارت الحدود ضبابية، وأصبح المحيط الأمني وحده غير كافٍ.</p></div>
+      <div><h3>نهج انعدام الثقة</h3><p>أمثلة على ما يُفحص: هل الهوية موثّقة بعاملين؟ هل الجهاز محدَّث ومسجّل؟ هل يملك المستخدم صلاحية لهذا المورد تحديداً؟ هل السلوك طبيعي؟ وتتكرر الفحوص عند كل طلب وليس مرة واحدة عند الدخول.</p></div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ ALL IN ONE ============ -->
+<section class="view" id="v-all-in-one" hidden>
+  <div class="vhead">
+    <p class="kicker">Putting it all together</p>
+    <h1>كل شيء معاً: شبكة متجر إلكتروني</h1>
+    <p class="lead">مثال الدرس: متجر يعرض منتجاته للجمهور ويخزّن بيانات العملاء وبطاقاتهم. شاهد كيف تعمل الطبقات معاً.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="stepper" id="o-steps"></div>
+      <div class="browser"><div class="bbar"><div class="url" id="o-url"></div></div><div class="bpage" id="o-page"></div></div>
+      <div class="stack"><span class="lbl">ماذا يحاول المهاجم؟ وما الذي يوقفه؟</span><div class="out" id="o-eve"></div></div>
+      <div class="row"><button class="btn" id="o-prev" type="button">السابق</button><button class="btn primary" id="o-next" type="button">التالي</button></div>
+    </div>
+    <aside class="panel note">
+      <h3>ما الذي يحميك الآن</h3>
+      <ul class="badges" id="o-badges"></ul>
+    </aside>
+  </div>
+  <details class="lesson-detail">
+    <summary>شرح تفصيلي: المثال الذي في الدرس</summary>
+    <div class="detail-body">
+      <div><h3>متجر إلكتروني</h3><p>يحتاج المتجر إلى عرض منتجاته للجمهور عبر الإنترنت، فيضع خادم الويب في DMZ. وتوضع قاعدة بيانات العملاء وبطاقات الائتمان في شبكة داخلية محمية تماماً. إذا نجح قرصان في اختراق خادم الويب العام فإن الـ DMZ تبقيه محصوراً، ولا يستطيع الوصول إلى قاعدة بيانات البطاقات.</p></div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section class="view" id="v-quiz" hidden>
+  <div class="vhead">
+    <p class="kicker">Check your understanding</p>
+    <h1>اختبر نفسك</h1>
+    <p class="lead">أسئلة على مفاهيم الدرس مع تفسير لكل إجابة.</p>
+  </div>
+  <div class="panel quiz" id="q-root"></div>
+</section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait=ms=>new Promise(r=>setTimeout(r,REDUCED?Math.min(ms,60):ms));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ic=(n,c='')=>`<svg class="i ${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const fillIcons=(root=document)=>$$('[data-ic]',root).forEach(e=>{e.innerHTML=ic(e.dataset.ic);});
+function rng(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s;};}
+function scramble(text,seed){
+  const bytes=[...new TextEncoder().encode(text)];
+  if(!bytes.length) return '—';
+  const r=rng(seed);
+  return bytes.map(b=>((b^(r()>>>24))&255).toString(16).padStart(2,'0')).join('').match(/.{1,4}/g).join(' ');
+}
+const rseed=()=>(Math.random()*4294967296)>>>0;
+
+function fly(stage,text,fromEl,toEl,o={}){
+  const p=document.createElement('div');
+  p.className='packet '+(o.cls||'info'); p.textContent=text; p.style.visibility='hidden';
+  stage.appendChild(p);
+  const sr=stage.getBoundingClientRect(),a=fromEl.getBoundingClientRect(),b=toEl.getBoundingClientRect();
+  const pw=p.offsetWidth,ph=p.offsetHeight;
+  const ax=a.left+a.width/2-sr.left-pw/2, ay=a.top+a.height/2-sr.top-ph/2;
+  const dx=(b.left+b.width/2-sr.left-pw/2)-ax, dy=(b.top+b.height/2-sr.top-ph/2)-ay;
+  p.style.left=ax+'px'; p.style.top=ay+'px'; p.style.visibility='';
+  const an=p.animate([
+    {transform:'translate(0,0)',opacity:0},
+    {transform:`translate(${dx*.1}px,${dy*.1}px)`,opacity:1,offset:.1},
+    {transform:`translate(${dx*.9}px,${dy*.9}px)`,opacity:1,offset:.9},
+    {transform:`translate(${dx}px,${dy}px)`,opacity:0}
+  ],{duration:REDUCED?120:(o.dur||1100),easing:'ease-in-out',fill:'forwards'});
+  return an.finished.catch(()=>{}).then(()=>p.remove());
+}
+
+/* ---------- "simple" explanation panels ---------- */
+const SIMPLE={
+firewall:{an:'حارس البوابة: معه <b>قائمة بأسماء من يُسمح لهم بالدخول</b> وإلى أي غرفة. من ليس في القائمة لا يدخل مهما حاول.',st:['تصل حركة مرور من الإنترنت إلى حدود الشبكة.','الجدار يقرأ: من المرسل؟ إلى أين؟ عبر أي منفذ؟','يقارن ذلك بالقواعد بالترتيب.','أول قاعدة تنطبق تحدد: سماح أو منع.'],m:'الجدار لا يعرف نوايا المرسل، هو يطبق القواعد فقط. لذلك القواعد الواسعة جداً خطر.'},
+vpn:{an:'<b>نفق مغلق</b> تحت الشارع: السيارات تمر داخله ولا يراها أحد من فوق، رغم أن الشارع عام.',st:['جهازك يتصل ببوابة VPN عند الشركة.','يُنشأ نفق مشفّر بينكما.','كل بياناتك تمر داخله كرموز لا تُفهم.','البوابة تفك التشفير وتدخل البيانات إلى شبكة الشركة.'],m:'الـ VPN يحمي الطريق، لكنه لا يعالج جهازاً مصاباً ولا يجعل الموقع الذي تزوره صادقاً.'},
+dmz:{an:'<b>مكتب الاستقبال</b> في المبنى: يقابل الزوار في الطابق الأرضي، لكن غرفة الخزنة في الطابق الداخلي خلف باب آخر. لو تسلل أحد من الاستقبال يبقى أمامه باب آخر.',st:['خادم الويب يقف في منطقة وسطى (DMZ).','الزوار يصلون إليه فقط.','الجدار الداخلي يحرس الطريق إلى الشبكة الداخلية.','لو سقط الخادم العام تبقى البيانات الداخلية في أمان.'],m:'الـ DMZ لا تمنع اختراق الخادم العام، لكنها تحصر الضرر.'},
+depth:{an:'<b>القلعة</b>: خندق، ثم سور، ثم أبراج، ثم أبواب مقفلة. لو تجاوز العدو واحداً يواجه التالي.',st:['الطبقة 1: جدار الحماية عند المدخل.','الطبقة 2: VPN لحماية الطريق.','الطبقة 3: DMZ لعزل الخوادم العامة.','الطبقة 4: مكافحة الفيروسات وتحديث الأجهزة.'],m:'لا توجد طبقة تحميك من كل شيء. قوة التصميم في تكامل الطبقات.'},
+zerotrust:{an:'<b>فندق</b> بمفتاح لكل غرفة: كونك داخل الفندق لا يفتح لك أي غرفة. في كل باب يُتحقق منك من جديد.',st:['يطلب مستخدم الوصول إلى مورد.','يتحقق النظام من الهوية.','ثم من سلامة الجهاز.','ثم من الصلاحية والسياق. وإذا فشل أي فحص يُرفض الطلب.'],m:'مجرد وجودك داخل الشبكة لا يعني أنك موثوق.'},
+'all-in-one':{an:'<b>مبنى تجاري محترم</b>: بوابة بحارس، واستقبال منفصل، وخزنة في الداخل، وموظفون يُفحصون عند كل باب.',st:['جدار الحماية يسمح فقط بالمنفذ اللازم للزوار.','خادم الويب في DMZ.','قاعدة البيانات في الشبكة الداخلية.','الموظف يدير من البيت عبر VPN بعد التحقق.'],m:'كل تقنية تحل مشكلة مختلفة، ولا تغني واحدة عن الأخرى.'}
+};
+function simple(id){
+  const d=SIMPLE[id],s=$('#v-'+id); if(!d||!s) return;
+  const h=document.createElement('div'); h.className='panel simple';
+  h.innerHTML=`<h3>الفكرة بالبسيط</h3><p class="an">${d.an}</p><div><b>الخطوات بكلمات سهلة</b><ol>${d.st.map(x=>`<li>${x}</li>`).join('')}</ol></div><p class="mist"><b>تنبيه:</b> ${d.m}</p>`;
+  $('.vhead',s).after(h);
+}
+
+/* ---------- router ---------- */
+const TABS=[['home','الرئيسية'],['firewall','جدار الحماية'],['vpn','VPN'],['dmz','المنطقة المعزولة'],['depth','الدفاع في العمق'],['zerotrust','انعدام الثقة'],['all-in-one','كل شيء معاً'],['quiz','اختبر نفسك']];
+$('#tabs').innerHTML=TABS.map(([id,l])=>`<a href="#${id}" data-view="${id}">${l}</a>`).join('');
+Object.keys(SIMPLE).forEach(simple);
+fillIcons();
+const inited={};
+const INIT={home:initHome,firewall:initFw,vpn:initVpn,dmz:initDmz,depth:initDepth,zerotrust:initZt,'all-in-one':initAll,quiz:initQuiz};
+function route(){
+  let h=''; try{h=decodeURIComponent(location.hash.slice(1));}catch(e){}
+  if(!INIT[h]) h='home';
+  $$('.view').forEach(v=>{v.hidden=v.id!=='v-'+h;});
+  $$('#tabs a').forEach(a=>{
+    const on=a.dataset.view===h;
+    if(on){a.setAttribute('aria-current','page');try{a.scrollIntoView({inline:'center',block:'nearest'});}catch(e){}}
+    else a.removeAttribute('aria-current');
+  });
+  if(!inited[h]){inited[h]=true;INIT[h]();}
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);
+$('#bigBtn').addEventListener('click',e=>{
+  const on=document.documentElement.classList.toggle('big');
+  e.currentTarget.setAttribute('aria-pressed',String(on));
+});
+const themeBtn=$('#themeBtn');
+function currentTheme(){
+  const x=document.documentElement.getAttribute('data-theme');
+  if(x==='light'||x==='dark') return x;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+}
+function syncTheme(){
+  const dark=currentTheme()==='dark';
+  themeBtn.textContent=dark?'الوضع الفاتح':'الوضع الداكن';
+  themeBtn.setAttribute('aria-pressed',String(dark));
+}
+try{const t=localStorage.getItem('netsec-lab-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}
+themeBtn.addEventListener('click',()=>{
+  const n=currentTheme()==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);
+  try{localStorage.setItem('netsec-lab-theme',n);}catch(e){}
+  syncTheme();
+});
+syncTheme();
+
+/* ---------- HOME ---------- */
+function initHome(){
+  // glossary
+  const T=[['جدار الحماية (Firewall)','يسمح بالاتصال أو يمنعه بين الشبكات استناداً إلى قواعد محددة مسبقاً'],['الشبكة الافتراضية الخاصة (VPN)','نفق منطقي مشفّر ينقل البيانات بأمان عبر شبكة عامة غير موثوقة'],['المنطقة المعزولة (DMZ)','منطقة تُوضع فيها الخوادم المواجهة للجمهور منفصلة عن الشبكة الداخلية'],['الدفاع في العمق','تكديس الإجراءات والضوابط الأمنية في طبقات متعددة'],['انعدام الثقة (Zero Trust)','نهج يتحقق باستمرار من كل عملية وصول ولا يثق تلقائياً بأحد'],['المحيط الأمني','الحدود التقليدية التي تفصل الشبكة الداخلية «الآمنة» عن الخارج'],['منفذ (Port)','رقم يحدد الخدمة المستهدفة على الخادم، مثل 443 للويب المشفّر']];
+  const h=$('#v-home'),d=document.createElement('div');
+  d.className='panel xsim';
+  d.innerHTML='<h3>مسرد المصطلحات</h3><input class="inp" placeholder="ابحث عن مصطلح…" aria-label="بحث"><div class="g"></div>';
+  h.append(d);
+  const g=$('.g',d),r=q=>{g.innerHTML=T.filter(t=>(t[0]+t[1]).includes(q)).map(t=>`<p><b>${t[0]}:</b> <span class="muted">${t[1]}</span></p>`).join('')||'<p class="muted">لا نتيجة</p>';};
+  r(''); $('input',d).addEventListener('input',e=>r(e.target.value));
+  if(REDUCED) return;
+  const S=[
+    ['attacker → customer-db','warn','بدون أي حماية: وصل المهاجم للبيانات',false],
+    ['attacker → firewall ✗','shield','الطبقة 1: الجدار منع الاتصال',true],
+    ['attacker → web (DMZ) → inner ✗','shield','الطبقة 3: الـ DMZ حصرت الهجوم',true],
+    ['malware → laptop ✗','shield','الطبقة 4: مكافحة الفيروسات أوقفته',true]
+  ]; let i=0;
+  const el=$('#demo-line'),lab=$('#demo-label'),icn=$('#demo-ic');
+  setInterval(()=>{
+    if($('#v-home').hidden) return;
+    i=(i+1)%S.length; el.style.opacity=0;
+    setTimeout(()=>{
+      const s=S[i]; el.className='demo-line mono'+(s[3]?' ok':'');
+      el.textContent=s[0]; lab.textContent=s[2]; icn.innerHTML=ic(s[1]); el.style.opacity=1;
+    },250);
+  },2800);
+}
+
+/* ---------- FIREWALL ---------- */
+function initFw(){
+  const RULES=[
+    {t:'السماح: أي مصدر ← خادم الويب · المنفذ 443 (HTTPS)',m:p=>p.dst==='web'&&p.port===443},
+    {t:'السماح: الشبكة الداخلية ← قاعدة البيانات · المنفذ 3306',m:p=>p.src==='int'&&p.dst==='db'&&p.port===3306},
+    {t:'السماح: أي مصدر ← أي وجهة · أي منفذ (قاعدة واسعة)',m:()=>true,danger:true}
+  ];
+  const on=[true,true,false]; let def='deny',busy=false;
+  const NM={web:'خادم الويب',db:'قاعدة البيانات'};
+  const T=[
+    {n:'زائر يتصفح المتجر',src:'net',dst:'web',port:443,good:true},
+    {n:'مهاجم من الإنترنت يحاول الوصول إلى قاعدة البيانات',src:'net',dst:'db',port:3306,good:false},
+    {n:'مدير النظام (داخل الشبكة) يتصل بقاعدة البيانات',src:'int',dst:'db',port:3306,good:true},
+    {n:'مهاجم يجرّب منفذ Telnet على خادم الويب',src:'net',dst:'web',port:23,good:false}
+  ];
+  const done={};
+  const stage=$('#f-stage'),netI=$('#f-net .ico'),fwI=$('#f-fw .ico'),lanI=$('#f-lan .ico');
+  $('#f-rules').innerHTML=RULES.map((r,i)=>`<label class="rule ${r.danger?'danger':''}"><span class="n">${i+1}</span><input type="checkbox" data-i="${i}" ${on[i]?'checked':''} style="width:1.1rem;height:1.1rem;accent-color:var(--accent)"><span>${r.t}</span></label>`).join('');
+  const lines=()=>$$('.tr',$('#f-traffic'));
+  $('#f-traffic').innerHTML=T.map((t,i)=>`<div class="tr" data-i="${i}"><div><b>${t.n}</b><div class="mono muted">${t.src==='net'?'Internet':'Internal'} → ${t.dst}:${t.port}</div></div><button class="btn sm primary" type="button">أرسل</button><div class="res"></div></div>`).join('');
+  function evalp(p){
+    for(let i=0;i<RULES.length;i++){ if(on[i]&&RULES[i].m(p)) return {ok:true,why:`انطبقت القاعدة ${i+1}: سماح`}; }
+    return {ok:def==='allow',why:`لا قاعدة تنطبق، فطُبّقت السياسة الافتراضية: ${def==='allow'?'سماح':'منع'}`};
+  }
+  function score(){
+    const k=Object.keys(done); if(!k.length){$('#f-score').textContent='لم تُرسل أي حركة بعد';return;}
+    const good=k.filter(i=>done[i]).length;
+    $('#f-score').textContent=`قرارات صحيحة: ${good} من ${k.length} (المطلوب ${T.length})`;
+  }
+  function reset(){
+    Object.keys(done).forEach(k=>delete done[k]);
+    lines().forEach(l=>{l.className='tr';$('.res',l).innerHTML='';});
+    $('#f-fwtag').innerHTML=''; score();
+  }
+  $('#f-rules').addEventListener('change',e=>{const c=e.target.closest('input');if(!c)return;on[+c.dataset.i]=c.checked;reset();});
+  $('#f-def').addEventListener('change',e=>{def=e.target.value;reset();});
+  $('#f-traffic').addEventListener('click',async e=>{
+    const b=e.target.closest('button'); if(!b||busy) return;
+    busy=true; $$('#f-traffic button').forEach(x=>x.disabled=true);
+    const row=b.closest('.tr'),i=+row.dataset.i,t=T[i],ev=evalp(t);
+    const lbl=`${t.dst}:${t.port}`,cls=t.good?'info':'plain';
+    await fly(stage,lbl,t.src==='net'?netI:lanI,fwI,{cls});
+    $('#f-fwtag').innerHTML=ev.ok?`<span class="tag good">${ic('check')} سمح</span>`:`<span class="tag bad">${ic('cross')} منع</span>`;
+    fwI.className='ico '+(ev.ok?'on':'watch');
+    if(ev.ok) await fly(stage,lbl,fwI,lanI,{cls:'ok'}); else await wait(500);
+    fwI.className='ico';
+    const correct=ev.ok===t.good; done[i]=correct;
+    row.className='tr '+(correct?'okk':'noo');
+    $('.res',row).innerHTML=`<span class="tag ${correct?'good':'bad'}">${ic(correct?'check':'cross')} ${correct?'قرار صحيح':'قرار خاطئ'}</span> ${ev.ok?'سُمحت':'مُنعت'} الحركة. ${esc(ev.why)}.`+(correct?'':(t.good?' هذه حركة مشروعة يجب أن تمر.':' هذه هجمة كان يجب أن تُمنع.'));
+    score(); busy=false; $$('#f-traffic button').forEach(x=>x.disabled=false);
+  });
+  score();
+}
+
+/* ---------- VPN ---------- */
+function initVpn(){
+  const LAB={remote:['جهازك (مقهى)','Wi‑Fi عام','شبكة الشركة'],branch:['فرع المدينة الأولى','الإنترنت العام','فرع المدينة الثانية']};
+  let mode='remote',vpn='off',busy=false;
+  const stage=$('#v-stage'),aI=$('#v-a .ico'),mI=$('#v-m .ico'),bI=$('#v-b .ico');
+  function paint(){
+    $$('#v-mode button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===mode)));
+    $$('#v-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===vpn)));
+    $('#v-an').textContent=LAB[mode][0]; $('#v-mn').textContent=LAB[mode][1]; $('#v-bn').textContent=LAB[mode][2];
+    $('#v-atag').innerHTML=vpn==='on'?`<span class="tag info">${ic('tunnel')} بوابة VPN</span>`:'';
+    $('#v-btag').innerHTML=vpn==='on'?`<span class="tag info">${ic('tunnel')} بوابة VPN</span>`:'';
+    $('#v-eve').textContent='—';$('#v-eve').className='out mono';$('#v-dst').textContent='—';$('#v-dst').className='out';
+  }
+  $('#v-mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;mode=b.dataset.m;paint();});
+  $('#v-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||busy)return;vpn=b.dataset.v;paint();});
+  $('#v-send').addEventListener('click',async()=>{
+    if(busy) return; busy=true; $('#v-send').disabled=true;
+    const msg=$('#v-msg').value||'بيانات'; paint();
+    const enc=vpn==='on', pay=enc?scramble(msg,rseed()):msg;
+    await fly(stage,pay,aI,mI,{cls:enc?'cipher':'plain'});
+    mI.classList.add('watch');
+    if(enc){$('#v-eve').textContent=pay;$('#v-eve').className='out mono cipher';}
+    else{$('#v-eve').innerHTML=`<mark>${esc(msg)}</mark>`;$('#v-eve').className='out mono bad';}
+    await wait(700);
+    await fly(stage,pay,mI,bI,{cls:enc?'cipher':'plain'});
+    mI.classList.remove('watch');
+    const d=$('#v-dst');
+    if(enc){d.innerHTML='فكّت البوابة التشفير ← '+esc(msg);d.className='out good';}
+    else{d.textContent=msg;d.className='out';}
+    busy=false; $('#v-send').disabled=false;
+  });
+  paint();
+}
+
+/* ---------- DMZ ---------- */
+function initDmz(){
+  let dmz=true;
+  const zones=$('#d-zones');
+  function draw(hit){
+    const web=`<div class="srv ${hit.web?'hit':''}">${ic('server')} <b>خادم الويب</b>${hit.web?' <span class="tag bad">مخترق</span>':''}</div>`;
+    const mail=`<div class="srv">${ic('server')} <b>خادم البريد</b></div>`;
+    const db=`<div class="srv ${hit.db?'hit':hit.web?'safe':''}">${ic('db')} <b>قاعدة بيانات العملاء</b>${hit.db?' <span class="tag bad">سُرقت</span>':hit.web?' <span class="tag good">سليمة</span>':''}</div>`;
+    const pay=`<div class="srv ${hit.db?'hit':hit.web?'safe':''}">${ic('db')} <b>بيانات البطاقات</b></div>`;
+    zones.innerHTML=
+      `<div class="zone"><h4>${ic('globe')} الإنترنت</h4><div class="srv">${ic('user')} زائر</div><div class="srv ${hit.web?'hit':''}">${ic('bug')} مهاجم</div></div>`+
+      `<div class="wall up">جدار 1</div>`+
+      (dmz?`<div class="zone dmz"><h4>${ic('shield')} DMZ</h4>${web}${mail}</div><div class="wall ${hit.db?'':'up'}">جدار 2</div><div class="zone inner"><h4>${ic('building')} الشبكة الداخلية</h4>${db}${pay}</div>`
+          :`<div class="zone inner" style="grid-column:span 3"><h4>${ic('building')} شبكة واحدة مسطّحة (بلا عزل)</h4>${web}${mail}${db}${pay}</div>`);
+  }
+  async function attack(){
+    $('#d-atk').disabled=true; $('#d-res').innerHTML='';
+    draw({web:true}); await wait(900);
+    if(dmz){
+      draw({web:true});
+      $('#d-res').innerHTML=`<div class="result good"><b>${ic('shield')} حُصر الهجوم داخل الـ DMZ</b><p>نجح المهاجم في اختراق خادم الويب العام، لكن الجدار الداخلي يمنع انتقاله إلى الشبكة الداخلية، فبقيت قاعدة البيانات سليمة.</p></div>`;
+    }else{
+      await wait(500);
+      draw({web:true,db:true});
+      $('#d-res').innerHTML=`<div class="result bad"><b>${ic('warn')} وصل المهاجم إلى كل شيء</b><p>الخادم المخترق يقع داخل الشبكة نفسها التي فيها بياناتك، فصار نقطة انطلاق مباشرة إلى قاعدة البيانات والبطاقات.</p></div>`;
+    }
+    $('#d-atk').disabled=false;
+  }
+  $('#d-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;dmz=b.dataset.v==='on';$$('#d-seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw({});$('#d-res').innerHTML='';});
+  $('#d-atk').addEventListener('click',attack);
+  $('#d-reset').addEventListener('click',()=>{draw({});$('#d-res').innerHTML='';});
+  draw({});
+  // game
+  const G=[['خادم الويب الذي يزوره العملاء','dmz'],['خادم البريد المتصل بالإنترنت','dmz'],['قاعدة بيانات العملاء','in'],['بيانات رواتب الموظفين','in'],['خادم الملفات الداخلي للمؤسسة','in']];
+  const gd={};
+  $('#d-game').innerHTML=G.map((g,i)=>`<div class="tr" data-i="${i}"><b>${g[0]}</b><div class="row"><button class="btn sm" data-a="dmz" type="button">DMZ</button><button class="btn sm" data-a="in" type="button">الشبكة الداخلية</button></div><div class="res"></div></div>`).join('');
+  $('#d-game').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    const r=b.closest('.tr'),i=+r.dataset.i; if(r.dataset.d) return; r.dataset.d='1';
+    const ok=b.dataset.a===G[i][1]; gd[i]=ok;
+    r.className='tr '+(ok?'okk':'noo'); $$('button',r).forEach(x=>x.disabled=true);
+    $('.res',r).innerHTML=`<span class="tag ${ok?'good':'bad'}">${ic(ok?'check':'cross')} ${ok?'صحيح':'غير صحيح'}</span> `+(G[i][1]==='dmz'?'خدمة معرّضة للإنترنت، مكانها DMZ.':'بيانات أو خدمة داخلية، مكانها خلف الجدار الداخلي.');
+    const k=Object.keys(gd);$('#d-score').textContent=`النتيجة: ${k.filter(x=>gd[x]).length} من ${G.length}`+(k.length===G.length?' · انتهيت':'');
+  });
+}
+
+/* ---------- DEFENSE IN DEPTH ---------- */
+function initDepth(){
+  const L=[
+    {n:'الطبقة 1: مدخل الشبكة',t:'جدار الحماية',i:'wall'},
+    {n:'الطبقة 2: مسار الاتصال',t:'شبكة VPN',i:'tunnel'},
+    {n:'الطبقة 3: وضع الخوادم',t:'منطقة DMZ',i:'server'},
+    {n:'الطبقة 4: الأجهزة الطرفية',t:'مكافحة الفيروسات وتحديث النظام',i:'monitor'}
+  ];
+  const A=[
+    {n:'اتصال غير مصرح به من الإنترنت إلى الداخل',s:[[0,'الجدار منع الاتصال من الأساس'],[2,'وصل لخادم عام فقط، لكن الـ DMZ حالت دون وصوله للبيانات الداخلية']]},
+    {n:'تنصّت على Wi‑Fi عام أثناء العمل عن بعد',s:[[1,'الـ VPN شفّر الاتصال فلم يقرأ المتلصص شيئاً']]},
+    {n:'اختراق خادم الويب العام ومحاولة الوصول للداخل',s:[[2,'الـ DMZ عزلت الخادم، ولم يصل المهاجم للشبكة الداخلية']]},
+    {n:'برنامج خبيث يصل إلى جهاز موظف عبر ثغرة قديمة',s:[[3,'مكافحة الفيروسات رصدته والتحديثات أغلقت الثغرة'],[0,'الجدار منع البرنامج من الاتصال بخادم المهاجم']]}
+  ];
+  const on=[true,true,true,true]; let busy=false,wins=0,tot=0;
+  const lay=$('#g-layers');
+  function paint(st){
+    lay.innerHTML=L.map((l,i)=>{
+      const s=st&&st[i]; const cls=s?s.c:(on[i]?'':'off');
+      return `<div class="layer ${cls}"><span class="num">${i+1}</span><div><b>${ic(l.i)} ${l.n}</b><div class="why">${l.t}${s&&s.m?' — '+esc(s.m):''}</div></div><label class="check"><input type="checkbox" data-i="${i}" ${on[i]?'checked':''}> مفعّلة</label></div>`;
+    }).join('');
+  }
+  lay.addEventListener('change',e=>{const c=e.target.closest('input');if(!c||busy)return;on[+c.dataset.i]=c.checked;paint();$('#g-res').innerHTML='';});
+  $('#g-atks').innerHTML=A.map((a,i)=>`<button class="btn" type="button" data-i="${i}">${ic('bug')} ${a.n}</button>`).join('');
+  $('#g-atks').addEventListener('click',async e=>{
+    const b=e.target.closest('button'); if(!b||busy) return; busy=true;
+    const a=A[+b.dataset.i]; $('#g-res').innerHTML='';
+    const st={}; let stopped=null;
+    for(let i=0;i<4;i++){
+      const sp=a.s.find(x=>x[0]===i);
+      if(!on[i]){st[i]={c:'breach',m:'الطبقة معطلة: تجاوزها الهجوم'};}
+      else if(sp&&!stopped){st[i]={c:'stop',m:sp[1]};stopped=i;}
+      else st[i]={c:'pass',m:stopped!==null?'':'لا تتعلق بهذا الهجوم'};
+      paint(st); await wait(600);
+      if(stopped!==null) break;
+    }
+    tot++;
+    if(stopped!==null){
+      wins++;
+      const off=on.filter(x=>!x).length;
+      $('#g-res').innerHTML=`<div class="result good"><b>${ic('shield')} تم صدّ الهجوم عند الطبقة ${stopped+1}</b><p>${esc(a.s.find(x=>x[0]===stopped)[1])}.${off?` وهذا حدث رغم تعطيل ${off} طبقة أخرى.`:''}</p></div>`;
+    }else{
+      $('#g-res').innerHTML=`<div class="result bad"><b>${ic('warn')} نجح الهجوم</b><p>لم تبقَ أي طبقة مفعّلة قادرة على إيقاف هذا الهجوم. فعّل الطبقة المناسبة وأعد المحاولة: ${a.s.map(x=>L[x[0]].t).join(' أو ')}.</p></div>`;
+    }
+    $('#g-score').textContent=`هجمات صُدّت: ${wins} من ${tot}`;
+    busy=false;
+  });
+  paint();
+}
+
+/* ---------- ZERO TRUST ---------- */
+function initZt(){
+  const P=[
+    {n:'مهاجم على Wi‑Fi المكتب بجهاز غير معروف',v:{in:1,id:0,dev:0,perm:0,beh:0}},
+    {n:'موظف من البيت بجهاز موثوق',v:{in:0,id:1,dev:1,perm:1,beh:1}},
+    {n:'حساب مسروق من جهاز جديد خارج الشبكة',v:{in:0,id:0,dev:0,perm:1,beh:0}},
+    {n:'موظف مبيعات داخل المكتب يطلب بيانات الرواتب',v:{in:1,id:1,dev:1,perm:0,beh:1}}
+  ];
+  let model='trad';
+  const ids=['in','id','dev','perm','beh'];
+  const LB={in:'داخل شبكة المؤسسة',id:'الهوية موثّقة بالمصادقة الثنائية',dev:'الجهاز مسجّل ومحدَّث',perm:'يملك صلاحية لهذا المورد',beh:'السلوك طبيعي'};
+  const get=k=>$('#z-'+k).checked;
+  function render(){
+    $$('#z-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===model)));
+    const used=model==='trad'?['in']:['id','dev','perm','beh'];
+    $('#z-checks').innerHTML=ids.map(k=>{
+      const u=used.includes(k),ok=get(k);
+      return `<li class="${u?(ok?'pass':'fail'):'skip'}"><span class="st">${u?ic(ok?'check':'cross'):''}</span>${LB[k]}${u?'':' <span class="muted">(لا يفحصه هذا النموذج)</span>'}</li>`;
+    }).join('');
+    const allow=used.every(get);
+    const bad=!used.every(k=>true)||false;
+    const risky=!(get('id')&&get('dev')&&get('perm')&&get('beh')); // should be denied in reality
+    const right=allow===!risky;
+    $('#z-res').innerHTML=`<div class="result ${right?'good':'bad'}"><b>${ic(allow?'check':'cross')} القرار: ${allow?'يُسمح بالوصول':'يُرفض الطلب'}</b><p>`+
+      (model==='trad'
+        ? (allow?'النموذج التقليدي وثق بالطلب لأنه داخل الشبكة فقط.':'النموذج التقليدي رفض الطلب لأنه خارج الشبكة.')
+        : (allow?'اجتازت كل الفحوص: هوية وجهاز وصلاحية وسلوك.':'فشل فحص واحد على الأقل، فرُفض الطلب.'))+
+      (right?'':(allow?' <b>هذا خطر: مهاجم أو طلب غير مصرح به نجح.</b>':' <b>هذا طلب مشروع رُفض دون داعٍ.</b>'))+`</p></div>`;
+  }
+  $('#z-pre').innerHTML=P.map((p,i)=>`<button class="btn" type="button" data-i="${i}">${p.n}</button>`).join('');
+  $('#z-pre').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    const p=P[+b.dataset.i]; ids.forEach(k=>{$('#z-'+k).checked=!!p.v[k];});
+    $$('#z-pre button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+    render();
+  });
+  $('#z-seg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;model=b.dataset.v;render();});
+  ids.forEach(k=>$('#z-'+k).addEventListener('change',()=>{$$('#z-pre button').forEach(x=>x.setAttribute('aria-pressed','false'));render();}));
+  $('#z-pre button').click();
+}
+
+/* ---------- ALL IN ONE ---------- */
+function initAll(){
+  const ST=[
+    {n:'زائر يدخل المتجر',b:'جدار الحماية',d:'يسمح فقط بحركة الويب المشروعة (المنفذ 443)',
+     page:()=>`<p><b>متجر الأجهزة</b></p><p class="muted">سماعات · لوحات مفاتيح · شواحن</p><span class="tag good">${ic('wall')} الجدار سمح بالمنفذ 443 فقط</span>`,
+     eve:()=>`مهاجم يجرب منفذ 23 ومنفذ 3306 على المتجر ← <b>الجدار يمنعهما</b> لأنه لا توجد قاعدة تسمح بهما.`},
+    {n:'خادم الويب في DMZ',b:'المنطقة المعزولة',d:'تعزل الخادم العام عن الشبكة الداخلية',
+     page:()=>`<ul class="checks"><li class="pass"><span class="st">${ic('check')}</span>خادم الويب في DMZ</li><li class="pass"><span class="st">${ic('check')}</span>خادم البريد في DMZ</li><li class="pass"><span class="st">${ic('check')}</span>جدار داخلي بين DMZ والشبكة الداخلية</li></ul>`,
+     eve:()=>`المهاجم يخترق خادم الويب بثغرة في الموقع ← <b>يبقى محصوراً في DMZ</b>، والجدار الداخلي يمنعه من الانتقال للشبكة الداخلية.`},
+    {n:'بيانات العملاء والبطاقات',b:'الشبكة الداخلية المحمية',d:'قاعدة البيانات لا تقبل اتصالاً مباشراً من الإنترنت',
+     page:()=>`<div class="orderrow"><span>قاعدة بيانات العملاء</span><b>شبكة داخلية</b></div><div class="orderrow"><span>بيانات البطاقات</span><b>شبكة داخلية</b></div><div class="orderrow"><span>من يصل إليها؟</span><b>خادم الويب فقط، عبر منفذ واحد</b></div>`,
+     eve:()=>`حتى لو سقط خادم الويب، <b>لا يستطيع المهاجم فتح اتصال مباشر</b> بقاعدة البيانات إلا عبر القاعدة الوحيدة المسموحة.`},
+    {n:'مدير يعمل من البيت',b:'VPN + انعدام الثقة',d:'نفق مشفّر، ثم فحص الهوية والجهاز عند كل طلب',
+     page:()=>`<ul class="checks"><li class="pass"><span class="st">${ic('check')}</span>نفق VPN مشفّر</li><li class="pass"><span class="st">${ic('check')}</span>هوية موثّقة بعاملين</li><li class="pass"><span class="st">${ic('check')}</span>جهاز مسجّل ومحدَّث</li><li class="pass"><span class="st">${ic('check')}</span>صلاحية للمورد المطلوب فقط</li></ul>`,
+     eve:()=>`المتلصص على Wi‑Fi المقهى لا يرى إلا رموزاً <span class="mono">${scramble('admin session',rseed())}</span>، وحساب مسروق وحده لن يمر من فحص الجهاز.`},
+    {n:'جهاز الموظف',b:'حماية الأجهزة الطرفية',d:'مكافحة الفيروسات وتحديث نظام التشغيل',
+     page:()=>`<ul class="checks"><li class="pass"><span class="st">${ic('check')}</span>برنامج مكافحة الفيروسات يعمل</li><li class="pass"><span class="st">${ic('check')}</span>نظام التشغيل محدَّث</li></ul><p class="muted">هذه آخر طبقة: إذا فشلت الطبقات قبلها يبقى الجهاز نفسه خط دفاع.</p>`,
+     eve:()=>`برنامج خبيث يصل عبر ثغرة قديمة ← <b>يُرصد ويُحجر</b>، وتغلق التحديثات الثغرة نفسها.`}
+  ];
+  let cur=0;
+  $('#o-steps').innerHTML=ST.map((s,i)=>`<button class="btn" type="button" data-i="${i}"><span class="num">${i+1}</span>${s.n}</button>`).join('');
+  $('#o-badges').innerHTML=ST.map((s,i)=>`<li data-i="${i}"><span class="num">${i+1}</span><div><b>${s.b}</b><span class="d">${s.d}</span></div></li>`).join('');
+  function show(i){
+    cur=Math.max(0,Math.min(ST.length-1,i)); const s=ST[cur];
+    $$('#o-steps button').forEach((b,j)=>b.setAttribute('aria-pressed',String(j===cur)));
+    $$('#o-badges li').forEach((li,j)=>li.classList.toggle('lit',j<=cur));
+    $('#o-url').innerHTML=ic('lock')+'<span>https://shop.example</span>';
+    $('#o-page').innerHTML=s.page(); $('#o-eve').innerHTML=s.eve();
+    $('#o-prev').disabled=cur===0; $('#o-next').disabled=cur===ST.length-1;
+  }
+  $('#o-steps').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i);});
+  $('#o-prev').addEventListener('click',()=>show(cur-1));
+  $('#o-next').addEventListener('click',()=>show(cur+1));
+  show(0);
+}
+
+/* ---------- QUIZ ---------- */
+function initQuiz(){
+  const TF=[
+    ['يمكن وضع جدار الحماية عند حدود الشبكة أو بين أجزائها الداخلية.',true,'الجدار يحرس الحدود، ويمكن أيضاً أن يفصل أقسام الشبكة بعضها عن بعض.'],
+    ['تضمن الشبكة الافتراضية الخاصة (VPN) أن كل موقع تزوره صادق وغير احتيالي.',false,'الـ VPN يحمي المسار بالتشفير فقط، ولا يثبت صدق الموقع الذي تتصل به.'],
+    ['توضع الخوادم المعرّضة للإنترنت، مثل خادم الويب، في DMZ منفصلة عن الشبكة الداخلية.',true,'العزل يقلل احتمال وصول الهجوم من الخادم العام إلى الداخل.'],
+    ['في نهج انعدام الثقة يكفي أن يكون الجهاز داخل شبكة المؤسسة ليحصل على الوصول.',false,'هذا هو نهج المحيط التقليدي. انعدام الثقة يتحقق من الهوية والصلاحيات والسياق في كل طلب.'],
+    ['يعتمد الدفاع في العمق على إجراء واحد قوي جداً يغني عن بقية الإجراءات.',false,'الدفاع في العمق يعني طبقات متعددة تساعد كل منها الأخرى إذا فشلت إحداها.']
+  ];
+  const OPT=['جدار الحماية','VPN','DMZ','انعدام الثقة'];
+  const MT=[
+    ['أريد منع اتصال خارجي غير مصرح به بقاعدة البيانات.','جدار الحماية'],
+    ['موظف يعمل من مقهى ويريد حماية بياناته أثناء الانتقال.','VPN'],
+    ['أريد عزل خادم الويب العام عن الشبكة الداخلية.','DMZ'],
+    ['أريد التحقق من الهوية والجهاز والصلاحية عند كل طلب وصول حتى داخل الشبكة.','انعدام الثقة']
+  ];
+  const total=TF.length+MT.length; let got=0,done=0;
+  const root=$('#q-root');
+  root.innerHTML=
+    '<h3>١. ضع علامة صح أو خطأ</h3>'+
+    TF.map((q,i)=>`<div class="q" data-t="tf" data-i="${i}"><p>${esc(q[0])}</p><div class="opts"><button class="btn" type="button" data-a="1">${ic('check')} صح</button><button class="btn" type="button" data-a="0">${ic('cross')} خطأ</button></div><p class="fb" aria-live="polite"></p></div>`).join('')+
+    '<h3>٢. طابق كل حاجة بأنسب إجراء</h3>'+
+    MT.map((q,i)=>`<div class="q" data-t="mt" data-i="${i}"><p>${esc(q[0])}</p><div class="opts">${OPT.map(o=>`<button class="btn" type="button" data-a="${esc(o)}">${o}</button>`).join('')}</div><p class="fb" aria-live="polite"></p></div>`).join('')+
+    `<span class="tag info score" id="q-score">النتيجة: 0 من ${total}</span>`+
+    '<h3>٣. توقف وفكّر</h3>'+
+    '<p>جدار الحماية يعمل بكفاءة، فلماذا لا يزال المتجر بحاجة إلى DMZ؟</p>'+
+    '<details><summary>اعرض الإجابة</summary><p>لأن الجدار قد يسمح بحركة مشروعة مثل زيارة الموقع، وقد يستغل المهاجم ثغرة في الخادم عبر هذه الحركة المسموحة. الـ DMZ تعزل الخادم العام فإذا اخترق لا يصل المهاجم إلى بيانات العملاء الداخلية.</p></details>'+
+    '<h3>٤. سؤال على نمط الامتحان (٦ درجات)</h3>'+
+    '<p>وضّح كيف يقلل الدفاع في العمق من أثر فشل أحد الإجراءات الأمنية، مستعيناً بمثال متجر إلكتروني.</p>'+
+    '<details><summary>اعرض إجابة مقترحة</summary><ul><li>الدفاع في العمق يعني تكديس طبقات متعددة من الضوابط بدلاً من الاعتماد على إجراء واحد.</li><li>في المتجر: جدار الحماية يمنع الاتصال غير المصرح به، وVPN يحمي اتصال الموظفين من بعد، وDMZ تعزل خادم الويب العام، ومكافحة الفيروسات والتحديثات تحمي الأجهزة.</li><li>إذا فشل الجدار أو اخترق خادم الويب، تبقى طبقة DMZ تمنع المهاجم من الوصول إلى قاعدة بيانات البطاقات.</li><li>النتيجة: فشل طبقة واحدة لا يؤدي إلى اختراق كامل، ويقل الخطر والضرر.</li></ul></details>';
+  const score=$('#q-score');
+  root.addEventListener('click',e=>{
+    const b=e.target.closest('button[data-a]'); if(!b) return;
+    const q=b.closest('.q'); if(q.dataset.done) return; q.dataset.done='1';
+    const i=+q.dataset.i; let ok,fb;
+    if(q.dataset.t==='tf'){ok=(b.dataset.a==='1')===TF[i][1];fb=(ok?'إجابة صحيحة. ':'إجابة غير صحيحة. ')+TF[i][2];}
+    else{ok=b.dataset.a===MT[i][1];fb=ok?'إجابة صحيحة.':`إجابة غير صحيحة. الأنسب هنا: ${MT[i][1]}.`;}
+    q.classList.add(ok?'done-good':'done-bad');
+    $('.fb',q).textContent=fb;
+    $$('button',q).forEach(x=>{x.disabled=true;});
+    done++; if(ok) got++;
+    score.textContent=`النتيجة: ${got} من ${total}`+(done===total?' · انتهيت':'');
+  });
+}
+
+route();
+})();
+</script>
+</body>
+</html>
