@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="light"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>معمل الاستجابة للحوادث وإدارة المخاطر — Pixtor edu</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@600;700&display=swap">
+<link rel="stylesheet" href="nav.css">
+<style>
+:root{--bg:#EEF3F5;--sf:#fff;--sf2:#E3EBEE;--fg:#10242C;--mu:#4D646E;--ln:#C9D7DC;--ac:#0B7A85;--ai:#fff;--as:#D3EEF0;--gd:#17814F;--gs:#D8F0E3;--bd:#B8312A;--bs:#F8DDDA;--wn:#8F5400;--ws:#FBEBCB;--c1:#cfeedd;--c2:#fbeab8;--c3:#fbd3a8;--c4:#f5b0a8;color-scheme:light;
+--fd:'Readex Pro','IBM Plex Sans Arabic',system-ui,sans-serif;--fb:'IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0C1A20;--sf:#132830;--sf2:#1A343E;--fg:#E3EFF2;--mu:#9DB6BE;--ln:#27434D;--ac:#3FC1CC;--ai:#05262B;--as:#12383E;--gd:#4CC98A;--gs:#123626;--bd:#FF8A80;--bs:#3E1B19;--wn:#F2B04C;--ws:#3B2C0E;--c1:#14412c;--c2:#4a3d12;--c3:#5a3414;--c4:#5e2220;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#0C1A20;--sf:#132830;--sf2:#1A343E;--fg:#E3EFF2;--mu:#9DB6BE;--ln:#27434D;--ac:#3FC1CC;--ai:#05262B;--as:#12383E;--gd:#4CC98A;--gs:#123626;--bd:#FF8A80;--bs:#3E1B19;--wn:#F2B04C;--ws:#3B2C0E;--c1:#14412c;--c2:#4a3d12;--c3:#5a3414;--c4:#5e2220;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--fb);line-height:1.75;font-size:1rem}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--sf)}
+h1,h2,h3,p{margin:0}
+.g{padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--sf);border-bottom:1px solid var(--ln)}
+.ti{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-block:10px 2px;max-width:1100px;margin-inline:auto}
+.brand{font-family:var(--fd);font-weight:700;font-size:1.05rem}
+.tabs{display:flex;gap:2px;overflow-x:auto;max-width:1100px;margin-inline:auto}
+.tabs a{color:var(--mu);text-decoration:none;padding:8px 13px;border-bottom:3px solid transparent;white-space:nowrap;font-weight:500}
+.tabs a[aria-current=page]{color:var(--ac);border-color:var(--ac);font-weight:700}
+main{max-width:1100px;margin-inline:auto;padding-block:24px 60px}
+.view[hidden]{display:none}
+.k{font:500 .8rem monospace;color:var(--ac);direction:ltr;text-align:right}
+h1{font-family:var(--fd);font-size:clamp(1.6rem,4.2vw,2.4rem);line-height:1.3;margin-block:4px 8px}
+.lead{color:var(--mu);font-size:1.08rem;max-width:62ch;margin-bottom:18px}
+.pn{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:18px;display:grid;gap:12px;margin-bottom:16px;min-width:0}
+.pn h3{font-family:var(--fd);font-size:1.05rem}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{padding:14px;border:1px solid var(--ln);border-radius:12px;background:var(--bg)}
+.card b{color:var(--ac);font-family:var(--fd)}
+a.card{color:inherit;text-decoration:none;background:var(--sf)}a.card:hover{border-color:var(--ac)}
+.try{padding:9px 13px;border-radius:10px;background:var(--as)}
+.btn{font:inherit;font-weight:600;border:1px solid var(--ln);background:var(--sf2);color:var(--fg);padding:7px 14px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.btn.sm{padding:4px 12px;font-size:.88rem}
+.btn:hover{border-color:var(--ac)}.btn[aria-pressed=true]{background:var(--ac);color:var(--ai);border-color:var(--ac)}.btn.p{background:var(--ac);color:var(--ai);border-color:var(--ac)}
+.btn:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tag{display:inline-block;padding:1px 10px;border-radius:99px;font-size:.85rem;font-weight:600;background:var(--as);color:var(--ac)}
+.tag.good{background:var(--gs);color:var(--gd)}.tag.bad{background:var(--bs);color:var(--bd)}.tag.warn{background:var(--ws);color:var(--wn)}
+.res{padding:12px;border-radius:10px;background:var(--sf2)}
+.res.good{background:var(--gs)}.res.bad{background:var(--bs)}
+select{font:inherit;padding:6px 10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--fg)}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--ln)}
+@media(max-width:600px){.item{grid-template-columns:minmax(0,1fr)}}
+.flow{display:flex;flex-wrap:wrap;gap:6px}
+.flow .btn{display:flex;gap:6px;align-items:center}
+.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ac);color:var(--ai);font-size:.8rem}
+.flow .btn[aria-pressed=true] .num{background:var(--ai);color:var(--ac)}
+.mx{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:4px;direction:rtl;max-width:520px}
+.mx div{display:grid;place-items:center;min-height:44px;border-radius:8px;font-weight:700;font-size:.85rem;text-align:center}
+.mx .h{background:none;color:var(--mu);font-weight:500;font-size:.75rem;padding:0 4px}
+.mx .on{outline:4px solid var(--fg);outline-offset:1px}
+.l1{background:var(--c1)}.l2{background:var(--c2)}.l3{background:var(--c3)}.l4{background:var(--c4)}
+input[type=range]{width:100%;accent-color:var(--ac)}
+.q{padding:12px;border:1px solid var(--ln);border-radius:12px;background:var(--bg);display:grid;gap:8px}
+.q.ok{border-color:var(--gd)}.q.no{border-color:var(--bd)}
+details{border:1px solid var(--ln);border-radius:10px;padding:8px 12px;background:var(--bg)}summary{cursor:pointer;font-weight:600}
+.big{font-family:var(--fd);font-size:1.4rem;font-weight:700}
+</style></head><body>
+<header class="site-top" id="site-top" data-lesson="u2l3"><div class="site-nav-mount"></div><nav class="g tabs" id="tabs" aria-label="أقسام الدرس"></nav></header>
+<script src="nav.js"></script>
+<main class="g">
+
+<section class="view" id="v-home">
+<p class="k">Lesson 3-2 · Incident Response &amp; Risk Management</p>
+<h1>الاستجابة للحوادث وإدارة المخاطر</h1>
+<p class="lead">حتى مع أقوى تقنيات الحماية قد يقع حادث أمني. لذلك تحتاج كل مؤسسة إلى خطة واضحة للاستجابة، وإلى طريقة لتقدير أي المخاطر تُعالج أولاً.</p>
+<div class="cols" style="margin-bottom:16px">
+<a class="card" href="#incident"><b>١. ما الحادث الأمني؟</b><br>تعريفه وأمثلته، وصنّف سيناريوهات بنفسك.</a>
+<a class="card" href="#phases"><b>٢. مراحل الاستجابة الست</b><br>من التحضير حتى الدروس المستفادة.</a>
+<a class="card" href="#risk"><b>٣. المخاطر والمصفوفة</b><br>الخطر = التأثير × الاحتمالية، مع مصفوفة تفاعلية.</a>
+<a class="card" href="#apply"><b>٤. تطبيق على حوادث</b><br>رتّب أولويات حادثين كما في الدرس.</a>
+<a class="card" href="#quiz"><b>٥. اختبر نفسك</b><br>خمسة أسئلة مع تفسير.</a>
+</div>
+<div class="pn"><h3>المصطلحات الأساسية</h3>
+<p><b>الحادث الأمني:</b> حدث يؤثر أو يهدد سرية المعلومات أو سلامتها أو توافرها، أو يخالف سياسة أمنية.</p>
+<p><b>الاحتواء:</b> تحديد نطاق التأثير لمنع انتشار الضرر.</p>
+<p><b>الاستئصال (إزالة التهديد):</b> حذف التهديد ومعالجة الثغرة التي استُغلت.</p>
+<p><b>الاستعادة:</b> إعادة الأنظمة والخدمات إلى حالة تشغيل آمنة وطبيعية.</p>
+<p><b>التأثير:</b> مقدار الضرر لو حدث الحادث. <b>الاحتمالية:</b> مدى احتمال وقوعه. <b>المخاطرة:</b> حاصل ضرب التأثير في الاحتمالية.</p></div>
+</section>
+
+<section class="view" id="v-incident" hidden>
+<p class="k">Security Incident</p><h1>ما الحادث الأمني؟</h1>
+<p class="lead">حدث يؤثر على سرية المعلومات أو سلامتها أو توافرها، أو يخالف سياسة أمنية.</p>
+<div class="cols" style="margin-bottom:16px">
+<div class="card"><b>تسرب المعلومات</b><br>تسرب البيانات الشخصية أو السرية إلى خارج المؤسسة. يمس <b>السرية</b>.</div>
+<div class="card"><b>التلاعب بالبيانات</b><br>تعديل بيانات داخل نظام ما دون تصريح. يمس <b>السلامة</b>.</div>
+<div class="card"><b>انقطاع الخدمة</b><br>تعطيل الخدمة وجعلها غير متاحة بسبب هجمات. يمس <b>التوافر</b>.</div></div>
+<div class="pn"><h3>جرّب: صنّف كل سيناريو</h3><div id="cl"></div></div>
+</section>
+
+<section class="view" id="v-phases" hidden>
+<p class="k">Incident Response Flow</p><h1>تدفق الاستجابة للحوادث</h1>
+<p class="lead">ست مراحل مرتبة. يساعد الترتيب على فهم التسلسل العام، لكن قد تتداخل المراحل أو تتكرر عملياً (مثلاً قد يلزم الرجوع للاحتواء بعد اكتشاف امتداد جديد).</p>
+<div class="pn"><div class="flow" id="fl"></div><div class="res" id="pd" aria-live="polite"></div></div>
+<div class="pn"><h3>جرّب: في أي مرحلة نحن؟</h3><div id="pm"></div></div>
+<details class="pn"><summary>لماذا يأتي الاحتواء قبل الاستئصال؟</summary><p>مثل حريق في مبنى: أول شيء تغلق أبواب الغرفة المشتعلة حتى لا تنتشر النار (احتواء)، ثم تطفئها وتزيل سبب الاشتعال (استئصال). ولو بدأت بالإطفاء دون الإغلاق قد تتسع النار أثناء ذلك. والاستعادة تأتي بعد التأكد من زوال التهديد، حتى لا نعيد تشغيل نظام ما زال مصاباً.</p></details>
+</section>
+
+<section class="view" id="v-risk" hidden>
+<p class="k">Risk = Impact × Likelihood</p><h1>مفهوم المخاطر ومصفوفة التقييم</h1>
+<p class="lead">الخطر المحتمل أن يقع حدث يسبب ضرراً. نقدّر درجته بضرب عاملين: التأثير والاحتمالية.</p>
+<div class="pn">
+<p class="try"><b>جرّب:</b> حرّك المؤشرين وراقب الخلية في المصفوفة. المخاطر ذات التأثير العالي والاحتمالية العالية تُعالج أولاً.</p>
+<label>التأثير (حجم الضرر): <b id="iv"></b><input type="range" id="im" min="1" max="5" value="3"></label>
+<label>الاحتمالية (مدى الوقوع): <b id="lv"></b><input type="range" id="lm" min="1" max="5" value="3"></label>
+<div class="res"><span id="ex"></span> <span class="big" id="rs"></span> <span class="tag" id="pr"></span></div>
+<div class="mx" id="mx" aria-label="مصفوفة تقييم المخاطر"></div>
+</div>
+<p class="pn">ترتيب الحالات الأخرى يعتمد على درجات المصفوفة والسياق والضوابط المتاحة. فالرقم وحده ليس القرار النهائي.</p>
+</section>
+
+<section class="view" id="v-apply" hidden>
+<p class="k">Applying the Matrix</p><h1>تطبيق: حادثان، أيهما أولاً؟</h1>
+<p class="lead">طبّق المعادلة على المثالين، ثم قارن النتيجة.</p>
+<div class="cols">
+<div class="pn"><h3>حادث ١: هجوم فدية يشفّر سجلات المستشفى بالكامل</h3><p>تأثير مرتفع جداً = 5، احتمالية مرتفعة = 4</p><button class="btn p" data-a="5,4,حادث ١">احسب الخطر</button><div class="res" hidden></div></div>
+<div class="pn"><h3>حادث ٢: انقطاع الشبكة 10 ثوان مع وجود مسار احتياطي</h3><p>تأثير منخفض = 2، احتمالية متوسطة = 3</p><button class="btn p" data-a="2,3,حادث ٢">احسب الخطر</button><div class="res" hidden></div></div></div>
+</section>
+
+<section class="view" id="v-quiz" hidden>
+<p class="k">Check your understanding</p><h1>اختبر نفسك</h1>
+<div class="pn" id="qz"></div><span class="tag" id="sc">النتيجة: 0</span>
+</section>
+</main>
+
+<script>
+(function(){'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const TABS=[['home','الرئيسية'],['incident','الحادث الأمني'],['phases','مراحل الاستجابة'],['risk','المخاطر'],['apply','تطبيق'],['quiz','اختبر نفسك']];
+$('#tabs').innerHTML=TABS.map(t=>`<a href="#${t[0]}" data-v="${t[0]}">${t[1]}</a>`).join('');
+const done={};
+function route(){let h=location.hash.slice(1);if(!TABS.some(t=>t[0]===h))h='home';
+$$('.view').forEach(v=>v.hidden=v.id!=='v-'+h);
+$$('#tabs a').forEach(a=>a.dataset.v===h?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+if(!done[h]){done[h]=1;({incident:inc,phases:ph,risk:risk,apply:app,quiz:quiz})[h]?.()}
+window.scrollTo(0,0)}
+addEventListener('hashchange',route);
+
+function inc(){
+const T=['تسرب المعلومات','التلاعب بالبيانات','انقطاع الخدمة'];
+const S=[['نشر ملفات بيانات الطلاب الشخصية على موقع عام دون قصد',0,'البيانات الشخصية خرجت من المؤسسة: السرية.'],['شخص يغيّر درجات طالب في النظام دون صلاحية',1,'عُدّلت البيانات دون إذن: السلامة.'],['هجوم يجعل موقع المدرسة لا يفتح لساعات',2,'الخدمة غير متاحة للمستخدمين: التوافر.'],['موظف يرسل تقارير سرية إلى بريده الشخصي خارج المؤسسة',0,'معلومات سرية خرجت من المؤسسة: السرية.']];
+$('#cl').innerHTML=S.map((s,i)=>`<div class="item" data-i="${i}"><span>${s[0]}</span><span class="row"><select aria-label="نوع الحادث"><option value="">اختر…</option>${T.map((t,j)=>`<option value="${j}">${t}</option>`).join('')}</select><span class="tag"></span></span></div>`).join('');
+$$('#cl select').forEach(sel=>sel.onchange=()=>{const s=S[+sel.closest('.item').dataset.i],t=sel.nextElementSibling;if(sel.value===''){t.textContent='';return}const ok=+sel.value===s[1];t.className='tag '+(ok?'good':'bad');t.textContent=ok?'صحيح. '+s[2]:'حاول مرة أخرى'})}
+
+const P=[['التحضير','إنشاء إجراءات وهياكل استجابة مسبقاً، واستعداداً للحوادث.','كواشف دخان وطفايات وخطة إخلاء قبل أي حريق.'],['الاكتشاف','اكتشاف وتأكيد وقوع حادث.','إنذار الحريق يرنّ ويتأكد الحارس أنه حريق فعلاً.'],['الاحتواء','تحديد نطاق التأثير بحيث لا ينتشر الضرر أكثر (عزل الجزء المتأثر أو قطع أثره بالطريقة المناسبة).','إغلاق أبواب الغرفة المشتعلة.'],['إزالة التهديد (الاستئصال)','إزالة التهديد ومسبباته، مثل حذف البرمجيات الخبيثة ومعالجة الثغرة المستغلة.','إطفاء النار وإزالة سبب الاشتعال.'],['الاستعادة','إعادة الأنظمة والخدمات إلى حالة تشغيل آمنة وطبيعية (قد تشمل الاستعادة من نسخة احتياطية سليمة).','إصلاح الغرفة وإعادة فتح المبنى.'],['الدروس المستفادة والتحسين','تحليل ما حدث وتوثيق الدروس وتحسين الضوابط لتقليل احتمال التكرار وأثره.','معرفة سبب الحريق وتحسين الإجراءات.']];
+function ph(){
+$('#fl').innerHTML=P.map((p,i)=>`<button class="btn" type="button" data-i="${i}" aria-pressed="false"><span class="num">${i+1}</span>${p[0]}</button>`).join('');
+const show=i=>{$$('#fl .btn').forEach((b,j)=>b.setAttribute('aria-pressed',String(i===j)));$('#pd').innerHTML=`<b>${P[i][0]}</b><p>${P[i][1]}</p><p class="tag">مثال الحريق: ${P[i][2]}</p>`};
+$('#fl').onclick=e=>{const b=e.target.closest('button');if(b)show(+b.dataset.i)};show(0);
+const M=[['ظهرت رسالة فدية على جهاز موظف وأكد الفريق وقوع الهجوم',1],['فصل الجهاز المصاب عن الشبكة لمنع الانتشار',2],['حذف البرمجية الخبيثة وتحديث البرنامج الذي كان فيه الثغرة',3],['إعادة الخوادم للعمل من نسخة احتياطية سليمة',4],['اجتماع لتحليل ما حدث وتحديث الضوابط',5],['تدريب الفريق وإعداد خطة استجابة قبل أي هجوم',0]];
+$('#pm').innerHTML=M.map((m,i)=>`<div class="item" data-i="${i}"><span>${m[0]}</span><span class="row"><select aria-label="المرحلة"><option value="">اختر…</option>${P.map((p,j)=>`<option value="${j}">${p[0]}</option>`).join('')}</select><span class="tag"></span></span></div>`).join('');
+$$('#pm select').forEach(s=>s.onchange=()=>{const t=s.nextElementSibling;if(s.value===''){t.textContent='';return}const ok=+s.value===M[+s.closest('.item').dataset.i][1];t.className='tag '+(ok?'good':'bad');t.textContent=ok?'صحيح':'حاول مرة أخرى'})}
+
+const lvl=v=>v>=15?['أولوية عالية جداً','bad',4]:v>=10?['أولوية عالية','warn',3]:v>=5?['أولوية متوسطة','warn',2]:['أولوية منخفضة','good',1];
+function risk(){
+const IL=['منخفض جداً','منخفض','متوسط','عالٍ','عالٍ جداً'],LL=['منخفضة جداً','منخفضة','متوسطة','عالية','عالية جداً'];
+let h='<div class="h"></div>'+IL.map(x=>`<div class="h">${x}</div>`).join('');
+for(let l=5;l>=1;l--){h+=`<div class="h">${LL[l-1]}</div>`;for(let i=1;i<=5;i++)h+=`<div class="l${lvl(i*l)[2]}" data-c="${i}-${l}">${i*l}</div>`}
+$('#mx').innerHTML=h+'<div class="h"></div><div class="h" style="grid-column:2/-1">التأثير ←  (الصفوف: الاحتمالية)</div>';
+const up=()=>{const i=+$('#im').value,l=+$('#lm').value,v=i*l,r=lvl(v);$('#iv').textContent=IL[i-1]+' ('+i+')';$('#lv').textContent=LL[l-1]+' ('+l+')';$('#ex').textContent=`${i} × ${l} =`;$('#rs').textContent=v;$('#pr').textContent=r[0];$('#pr').className='tag '+r[1];$$('#mx .on').forEach(x=>x.classList.remove('on'));$(`#mx [data-c="${i}-${l}"]`).classList.add('on')};
+$('#im').oninput=up;$('#lm').oninput=up;up()}
+
+function app(){$$('#v-apply button').forEach(b=>b.onclick=()=>{const[i,l,n]=b.dataset.a.split(',');const v=i*l,r=lvl(v),o=b.nextElementSibling;o.hidden=false;o.className='res '+(r[1]==='bad'?'bad':r[1]==='good'?'good':'');o.innerHTML=`${i} × ${l} = <b>${v}</b> ← <b>${r[0]}</b>. ${v>=15?'يُعالج فوراً وقبل غيره.':'يُعالج بعد الحالات ذات الأولوية الأعلى.'}`})}
+
+function quiz(){
+const Q=[['أي مما يلي يُعد حادثاً أمنياً؟',['تحديث تطبيق في موعده','تعديل بيانات نظام دون تصريح','طباعة تقرير عادي'],1,'التعديل دون إذن يهدد سلامة البيانات.'],['ما غرض مرحلة الاحتواء؟',['حذف الأنظمة المتضررة نهائياً','منع انتشار الضرر أكثر','كتابة تقرير الدروس'],1,'الاحتواء يحدد نطاق التأثير ويعزل الجزء المتأثر.'],['حذف البرمجية الخبيثة ومعالجة الثغرة المستغلة يتبع مرحلة:',['الاكتشاف','إزالة التهديد (الاستئصال)','التحضير'],1,'الاستئصال يزيل التهديد ومسبباته.'],['تُحسب درجة الخطر بالمعادلة:',['التأثير + الاحتمالية','التأثير × الاحتمالية','التأثير ÷ الاحتمالية'],1,'الخطر = درجة التأثير × درجة الاحتمالية.'],['حادث تأثيره 5 واحتماليته 4، ما درجة خطره وأولويته؟',['20، أولوية قصوى','9، أولوية منخفضة','1، لا يحتاج معالجة'],0,'5 × 4 = 20 في أعلى المصفوفة.']];
+let g=0,d=0;
+$('#qz').innerHTML=Q.map((q,i)=>`<div class="q" data-i="${i}"><p><b>${i+1}.</b> ${q[0]}</p><div class="row">${q[1].map((o,j)=>`<button class="btn" type="button" data-j="${j}">${o}</button>`).join('')}</div><p class="fb" aria-live="polite"></p></div>`).join('');
+$('#qz').onclick=e=>{const b=e.target.closest('button');if(!b)return;const q=b.closest('.q');if(q.dataset.d)return;q.dataset.d=1;const Z=Q[+q.dataset.i],ok=+b.dataset.j===Z[2];q.classList.add(ok?'ok':'no');$('.fb',q).textContent=(ok?'إجابة صحيحة. ':'إجابة غير صحيحة. ')+Z[3];$$('button',q).forEach(x=>x.disabled=true);d++;if(ok)g++;$('#sc').textContent='النتيجة: '+g+' من '+Q.length+(d===Q.length?' · انتهيت':'')}}
+route();
+})();
+</script></body></html>
